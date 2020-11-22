@@ -1,8 +1,6 @@
 import re
 from enum import Enum
-from typing import Callable
 from typing import List
-
 
 class Tokens(Enum):
     WHILE   = "(?<!\w)while(?!\w)"
@@ -29,7 +27,7 @@ class LexerError(Exception):
         """ Error for an unknown char encountered whilst lexing. """
         self.char = char
         self.pos = pos
-        super().__init__(f"unknown char \"{self.char}\" found at pos {self.pos}")
+        super().__init__(f"Encountered unknown char \"{self.char}\" at pos {self.pos}")
 
 
 class Token:
@@ -48,28 +46,90 @@ class Token:
         return f"(<{self.content}> at pos {self.pos} is {self.kind})"
 
 
-def lexer(code: str, rules: Enum) -> List[Token]:
-    def get_tokens(string: str, match_func: Callable[[str, int], re.Match],
-                   skip_func: Callable[[str, int], re.Match], pos: int = 0) -> List[Token]:
-        """ Recursively gets all keys present in string. """
-        if (pos := skip.end() if (skip := skip_func(string, pos)) else pos) >= len(string):
-            return []
-        if m := match_func(code, pos):
-            match = Token(m.lastgroup, m.group(m.lastgroup),  m.start())
-            return [match] + get_tokens(code, match_func, skip_func, m.end())
-        raise LexerError(string[pos], pos)
+suck_it_jan = lambda code, rules: list(map(lambda m: Token(m.lastgroup, m.group(m.lastgroup), m.start()), re.compile("|".join(list(map(lambda r: f"(?P<{r.name}>{r.value})", rules)))).finditer(code)))
 
-    find_whitespace = re.compile(r"[\s]+").match
-    joined_rules = "|".join([f"(?P<{rule.name}>{rule.value})" for rule in rules])
-    regex = re.compile(joined_rules).match
-    return get_tokens(code, regex, find_whitespace)
+
+def lexer(code: str, rules: Enum, unknowns: str) -> List[Token]:
+    """ Finds all tokens in string and throws error if an unknown is found"""
+    # Check for unknowns
+    if unknown := list(re.compile(unknowns).finditer(code)):
+        raise LexerError(unknown[0][0], unknown[0].start())
+
+    # Create regex search func
+    joined_rules = "|".join(list(map(lambda r: f"(?P<{r.name}>{r.value})", rules)))
+    search = re.compile(joined_rules).finditer
+
+    # Create list of found tokens and return them
+    return list(map(lambda m: Token(m.lastgroup, m[0], m.start()), search(code)))
+
+
+def morse_to_string(morse):
+    morse_dict = {
+         ".-":      "a",
+         "-...":    "b",
+         "-.-.":    "c",
+         "-..":     "d",
+         ".":       "e",
+         "..-.":    "f",
+         "--.":     "g",
+         "....":    "h",
+         "..":      "i",
+         ".---":    "j",
+         "-.-":     "k",
+         ".-..":    "l",
+         "--":      "m",
+         "-.":      "n",
+         "---":     "o",
+         ".--.":    "p",
+         "--.-":    "q",
+         ".-.":     "r",
+         "...":     "s",
+         "-":       "t",
+         "..-":     "u",
+         "... -":   "v",
+         ".--":     "w",
+         "-..-":    "x",
+         "-.--":    "y",
+         "--..":    "z",
+         "-----":   "0",
+         ".----":   "1",
+         "..---":   "2",
+         "...--":   "3",
+         "....-":   "4",
+         ".....":   "5",
+         "-....":   "6",
+         "--...":   "7",
+         "---..":   "8",
+         "----.":   "9",
+         ".-.-.-":  ".",
+         "-..--":   ",",
+         "..--..":  "?",
+         "-.-.--":  "!",
+         "-....-":  "-",
+         "-..-.":   "/",
+         "---...":  ":",
+         ".----.":  "'",
+         "-.--.-":  ")",
+         "-.-.-":   ";",
+         "-.--.":   "(",
+         "-...-":   "=",
+         ".--.-.":  "@",
+         ".–...":   "&",
+         "/":       " ",
+    }
+    if unknown := list(re.compile(r"[^-\./\s]").finditer(morse)):
+        raise LexerError(unknown[0][0], unknown[0].start())
+    return "".join(map(lambda x: morse_dict[x] , re.compile(r"(?<![.\-/])[.\-/]+").findall(morse)))
 
 
 if __name__ == "__main__":
     file = open("Worse.txt")
     filecontent = file.read()
     file.close()
-    for e in lexer(filecontent, Tokens):
-        print(e)
+    print(lexer(filecontent, Tokens, "[^\:\=\!\+\-\(\)\,\;\?\s\w]"))
+    q = ".--- .. .--- / --- . - .-.. ..- .-.. / --.. ..- .. --. / .--- . / -- --- . -.. . .-."
+    print(morse_to_string(q))
+
+
 
 
