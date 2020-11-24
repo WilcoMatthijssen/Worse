@@ -1,10 +1,11 @@
-?while(n)
+?var (n,a)
+    while
 	repeat(n)
 		say 10;
 	;
 	n;
 ;
-?main(arg,a)
+?main  (arg,a)
 	a=arg;
 	if( a :=20)
 		a=a-10;
@@ -16,5 +17,5 @@
 	say a;
 ;
 
-
+duif
 10w 10 wor333d;

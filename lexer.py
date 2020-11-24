@@ -2,7 +2,8 @@ import re
 from enum import Enum
 from typing import List
 
-class Tokens(Enum):
+
+class TokenSpecies(Enum):
     WHILE   = "(?<!\w)while(?!\w)"
     IF      = "(?<!\w)if(?!\w)"
     PRINT   = "(?<!\w)print(?!\w)"
@@ -23,44 +24,44 @@ class Tokens(Enum):
 
 
 class LexerError(Exception):
-    def __init__(self, char: str, pos: int):
+    def __init__(self, char: str, postype: str, pos: int):
         """ Error for an unknown char encountered whilst lexing. """
         self.char = char
+        self.postype= postype
         self.pos = pos
-        super().__init__(f"Encountered unknown char \"{self.char}\" at pos {self.pos}")
+        super().__init__(f"Encountered unknown char \"{self.char}\" at {self.postype} {self.pos}")
 
 
 class Token:
-    def __init__(self, kind: Tokens, content: str, pos: int):
+    def __init__(self, species: Enum, content: str, pos: int):
         """ Creates a Token containing content, pos and kind. """
         self.content = content
-        self.kind = kind
+        self.species = species
         self.pos = pos
 
     def __str__(self) -> str:
         """ returns content, pos and kind of Token. """
-        return f"(<{self.content}> at pos {self.pos} is {self.kind})"
+        return self.__repr__()
 
     def __repr__(self) -> str:
         """ returns content, pos and kind of Token. """
-        return f"(<{self.content}> at pos {self.pos} is {self.kind})"
+        return f"(\"{self.content}\", {self.pos}, {self.species})"
 
 
 suck_it_jan = lambda code, rules: list(map(lambda m: Token(m.lastgroup, m.group(m.lastgroup), m.start()), re.compile("|".join(list(map(lambda r: f"(?P<{r.name}>{r.value})", rules)))).finditer(code)))
 
-
 def lexer(code: str, rules: Enum, unknowns: str) -> List[Token]:
-    """ Finds all tokens in string and throws error if an unknown is found"""
-    # Check for unknowns
+    """ Finds all tokens in string and throws LexerError if an unknown is found"""
+    # Check for unknowns and throw LexerError if found.
     if unknown := list(re.compile(unknowns).finditer(code)):
-        raise LexerError(unknown[0][0], unknown[0].start())
+        raise LexerError(unknown[0][0], "char pos", unknown[0].start())
 
-    # Create regex search func
+    # Create regex search func.
     joined_rules = "|".join(list(map(lambda r: f"(?P<{r.name}>{r.value})", rules)))
     search = re.compile(joined_rules).finditer
 
     # Create list of found tokens and return them
-    return list(map(lambda m: Token(m.lastgroup, m[0], m.start()), search(code)))
+    return list(map(lambda m: Token(rules[m.lastgroup], m[0], m.start()), search(code)))
 
 
 def morse_to_string(morse):
@@ -118,15 +119,16 @@ def morse_to_string(morse):
          "/":       " ",
     }
     if unknown := list(re.compile(r"[^-\./\s]").finditer(morse)):
-        raise LexerError(unknown[0][0], unknown[0].start())
-    return "".join(map(lambda x: morse_dict[x] , re.compile(r"(?<![.\-/])[.\-/]+").findall(morse)))
+        raise LexerError(unknown[0][0], "position", unknown[0].start())
+    return "".join(map(lambda x: morse_dict[x], re.compile(r"(?<![.\-/])[.\-/]+").findall(morse)))
 
 
 if __name__ == "__main__":
     file = open("Worse.txt")
     filecontent = file.read()
     file.close()
-    print(lexer(filecontent, Tokens, "[^\:\=\!\+\-\(\)\,\;\?\s\w]"))
+    print(lexer(filecontent, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]"))
+
     q = ".--- .. .--- / --- . - .-.. ..- .-.. / --.. ..- .. --. / .--- . / -- --- . -.. . .-."
     print(morse_to_string(q))
 
