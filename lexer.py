@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import List
+from typing import List, Type
 
 
 class TokenSpecies(Enum):
@@ -33,7 +33,7 @@ class LexerError(Exception):
 
 
 class Token:
-    def __init__(self, species: Enum, content: str, pos: int):
+    def __init__(self, species: Type[Enum], content: str, pos: int):
         """ Creates a Token containing content, pos and kind. """
         self.content = content
         self.species = species
@@ -48,9 +48,7 @@ class Token:
         return f"(\"{self.content}\", {self.pos}, {self.species})"
 
 
-suck_it_jan = lambda code, rules: list(map(lambda m: Token(m.lastgroup, m.group(m.lastgroup), m.start()), re.compile("|".join(list(map(lambda r: f"(?P<{r.name}>{r.value})", rules)))).finditer(code)))
-
-def lexer(code: str, rules: Enum, unknowns: str) -> List[Token]:
+def lexer(code: str, rules: Type[Enum], unknowns: str) -> List[Token]:
     """ Finds all tokens in string and throws LexerError if an unknown is found"""
     # Check for unknowns and throw LexerError if found.
     if unknown := list(re.compile(unknowns).finditer(code)):
@@ -122,6 +120,7 @@ def morse_to_string(morse):
         raise LexerError(unknown[0][0], "position", unknown[0].start())
     return "".join(map(lambda x: morse_dict[x], re.compile(r"(?<![.\-/])[.\-/]+").findall(morse)))
 
+suck_it_jan = lambda code, rules: list(map(lambda m: Token(m.lastgroup, m.group(m.lastgroup), m.start()), re.compile("|".join(list(map(lambda r: f"(?P<{r.name}>{r.value})", rules)))).finditer(code)))
 
 if __name__ == "__main__":
     file = open("Worse.txt")
