@@ -1,21 +1,56 @@
-?var (n,a)
-    while
-	repeat(n)
-		say 10;
-	;
-	n;
-;
-?main  (arg,a)
-	a=arg;
-	if( a :=20)
-		a=a-10;
-	;
-	if(a)
-		a=a-10;
-	;
-	dog=10;
-	say a;
+
+?mul(val,exp)
+    sos =0;
+    while(exp !=0)
+       sos= sos + val;
+       exp = exp-1;
+   ;
 ;
 
-duif
-10w 10 wor333d;
+?div(val,exp)
+    sos =0;
+    while(val+1 := exp)
+       sos= sos + 1;
+       val = val - exp;
+
+   ;
+;
+?odd(n)
+    if(n == 0)
+        sos = 0;
+    ;
+    if(n != 0)
+        sos = even(n-1);
+    ;
+;
+
+?even(n)
+    if(n == 0)
+        sos = 1;
+    ;
+    if(n != 0)
+        sos = odd(n-1);
+    ;
+;
+
+
+
+?main(arg,a)
+    print(72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100);
+	a=10+20+20;
+	if(a)
+		a=20;
+    ;
+    q=10;
+    b=20;
+    if(a!=0)
+	    b = b - 1;
+	    a = a - 1;
+	    print(a);
+    ;
+
+	dog=31;
+    sos = div(q,1);
+    sos = even(dog);
+;
+
