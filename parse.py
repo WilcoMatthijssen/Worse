@@ -246,7 +246,7 @@ if __name__ == "__main__":
     file.close()
     "if(a)a=11;print(a1,aa,a,a,a,a,a);;"
     "?fu(a)a=1;while(a)a=12+10+help(a)+20;;;"
-    tok = lexer(filecontent, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]")
+    tok = lexer(filecontent, TokenSpecies, r"[^\:\=\!\&\-\(\)\,\;\?\s\w]")
     ast = parser(tok)
     for r in ast:
         print(r)

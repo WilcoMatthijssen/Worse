@@ -15,7 +15,7 @@ class TokenSpecies(Enum):
     NOTEQUAL= "\!\="
     GREATER = "\:\="
     LESSER  = "\=\:"
-    ADD     = "\+"
+    ADD     = "\&"
     SUB     = "\-"
     OPENBR  = "\("
     CLOSEBR = "\)"
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     file = open("Worse.txt")
     filecontent = file.read()
     file.close()
-    print(lexer(filecontent, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]"))
+    print(lexer(filecontent, TokenSpecies, r"[^\:\=\!\&\-\(\)\,\;\?\s\w]"))
 
     q = ".--- .. .--- / --- . - .-.. ..- .-.. / --.. ..- .. --. / .--- . / -- --- . -.. . .-."
     print(morse_to_string(q))
