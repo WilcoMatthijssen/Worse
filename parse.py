@@ -236,6 +236,7 @@ def value(tokens: List[Token], operation: Token = None, lhs: Union[FuncExe, Vari
             val, tokens = value(tokens, operation, val)
         if peek(tokens, [TokenSpecies.SEP, TokenSpecies.CLOSEBR, TokenSpecies.END]):
             return val, tokens
+        print(val)
         raise ParserError("Expected end of statement.")
     raise ParserError("Expected a value but didnt get it")
 
@@ -244,9 +245,9 @@ if __name__ == "__main__":
     file = open("Worse.txt")
     filecontent = file.read()
     file.close()
-    "if(a)a=11;print(a1,aa,a,a,a,a,a);;"
-    "?fu(a)a=1;while(a)a=12+10+help(a)+20;;;"
-    tok = lexer(filecontent, TokenSpecies, r"[^\:\=\!\&\-\(\)\,\;\?\s\w]")
+
+    tok = lexer(filecontent, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]")
+
     ast = parser(tok)
-    for r in ast:
-        print(r)
+
+    print(ast)

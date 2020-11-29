@@ -84,7 +84,7 @@ if __name__ == "__main__":
     filecontent = file.read()
     file.close()
 
-    tok = lexer(filecontent, TokenSpecies, r"[^\:\=\!\&\-\(\)\,\;\?\s\w]")
+    tok = lexer(filecontent, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]")
     try:
         ast = parser(tok)
         print(runner(ast))
