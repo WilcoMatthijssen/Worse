@@ -62,7 +62,7 @@ def lexer(code: str, rules: Type[Enum], unknowns: str) -> List[Token]:
     return list(map(lambda m: Token(rules[m.lastgroup], m[0], m.start()), search(code)))
 
 
-def morse_to_string(morse):
+def morse_converter(text, is_morse=True):
     morse_dict = {
         ".-": "a",
         "-...": "b",
@@ -106,35 +106,42 @@ def morse_to_string(morse):
         "..--..": "?",
         ".----.": "'",
         "-.-.--": "!",
-        "-..-.": "/",
+        "-..-.":  "/",
 
         "-.--.-": ")",
-        "-.--.": "(",
-        ".–...": "&",
+        "-.--.":  "(",
+        ".–...":  "&",
         "---...": ":",
         "-.-.-.": ";",
-        "-...-": "=",
+        "-...-":  "=",
 
-        ".-.-.": "+",
+        ".-.-.":  "+",
         "-....-": "-",
         "..--.-": "_",
         ".--.-.": "@",
-        "/": " ",
+        "/":      " ",
     }
-    if unknown := list(re.compile(r"[^-\./\s]").finditer(morse)):
-        raise LexerError(unknown[0][0], "position", unknown[0].start())
-    return "".join(map(lambda x: morse_dict[x], re.compile(r"(?<![.\-/])[.\-/]+").findall(morse)))
+    if is_morse:
+        if unknown := list(re.compile(r"[^-\./\s]").finditer(text)):
+            raise LexerError(unknown[0][0], "position", unknown[0].start())
+        morse_items = re.compile(r"(?<![.\-/])[.\-/]+").findall(text)
+        result = "".join(map(lambda x: morse_dict[x], morse_items))
+    else:
+        reversed_morse_dict = dict(map(lambda kv: (kv[0], (kv[1])), morse_dict.items()))
+        mores = "".join(map(lambda ch: f"{reversed_morse_dict[ch]} " if ch in reversed_morse_dict.keys() else ch, text))
+        result = mores.replace("/ ", "")
+    return result
 
-suck_it_jan = lambda code, rules: list(map(lambda m: Token(m.lastgroup, m.group(m.lastgroup), m.start()), re.compile("|".join(list(map(lambda r: f"(?P<{r.name}>{r.value})", rules)))).finditer(code)))
+suck_it_jan = lambda code, rules: list(map(lambda m: Token(m.lastgroup, m.group(m.lastgroup), m.start()), re.compile("|".join(list(map(lambda r: f"(?P<{r.name}>{r.parse_values})", rules)))).finditer(code)))
 
 if __name__ == "__main__":
     file = open("Worse.txt")
     filecontent = file.read()
     file.close()
-    print(lexer(filecontent, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]"))
+    #print(lexer(filecontent, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]"))
 
     q = ".--- .. .--- / --- . - .-.. ..- .-.. / --.. ..- .. --. / .--- . / -- --- . -.. . .-."
-    print(morse_to_string(q))
+    print(morse_converter(filecontent, False))
 
 
 

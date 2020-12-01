@@ -1,10 +1,22 @@
+from __future__ import annotations
 from lexer import *
 from enum import Enum
-from typing import Tuple, Union, Dict
+from typing import Tuple, Union, Dict, Optional
+
+
 
 class ParserError(Exception):
-    def __init__(self, msg):
-        super().__init__(msg)
+    def __init__(self, wanted: str, gotten: Optional[Token]):
+        self.wanted = wanted
+        if gotten:
+            self.gotten_content = gotten.content
+            self.gotten_type = gotten.species.name
+            self.position = gotten.pos
+            super().__init__(f"Expected {self.wanted}, but got {self.gotten_content}"
+                             f" which is a(n) {self.gotten_type}, at character position {self.position}.")
+        else:
+            super().__init__(f"Expected {self.wanted}, but got nothing because its at the end of the file.")
+
 
 
 class Node:
@@ -12,7 +24,7 @@ class Node:
         self.pos = pos
 
 
-class Value(Node):
+class ValueNode(Node):
     def __init__(self, value: Token):
         Node.__init__(self, value.pos)
         self.value = value.content
@@ -24,7 +36,7 @@ class Value(Node):
         return self.__str__()
 
 
-class Variable(Node):
+class VariableNode(Node):
     def __init__(self, name: Token):
         Node.__init__(self, name.pos)
         self.name = name.content
@@ -36,7 +48,7 @@ class Variable(Node):
         return f"{self.name}"
 
 
-class FuncExe(Node):
+class FuncExeNode(Node):
     def __init__(self, name: Token, params: List[Type[Node]]):
         Node.__init__(self, name.pos)
         self.name = name.content
@@ -49,8 +61,63 @@ class FuncExe(Node):
         return f"{self.name} {self.params}"
 
 
-class FuncDef(Node):
-    def __init__(self, name: Token, params: Dict[str, int], code: List[Type[Node]]):
+class OperationNode(Node):
+    def __init__(self, lhs: Union[FuncExeNode, VariableNode, ValueNode, OperationNode], operator: Token,
+                 rhs: Union[FuncExeNode, VariableNode, ValueNode, OperationNode]):
+        Node.__init__(self, operator.pos)
+        self.operator = operator.species
+        self.rhs = rhs
+        self.lhs = lhs
+
+    def __str__(self) -> str:
+        return f"({self.lhs} {self.operator} {self.rhs})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+class AssignNode(Node):
+    def __init__(self, variable: Token, value: Union[FuncExeNode, VariableNode, ValueNode, OperationNode]):
+        Node.__init__(self, variable.pos)
+        self.name = variable.content
+        self.value = value
+
+    def __str__(self) -> str:
+        return f"{self.name} = {self.value}"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+class PrintNode(Node):
+    def __init__(self, value: List[Union[FuncExeNode, VariableNode, ValueNode, OperationNode]], pos: int):
+        Node.__init__(self, pos)
+        self.value = value
+
+    def __str__(self) -> str:
+        return f"print {self.value}"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+class IfWhileNode(Node):
+    def __init__(self, expression: Type[Node], code: List[Union[AssignNode, PrintNode, IfWhileNode]], is_while: bool):
+        Node.__init__(self, expression.pos)
+        self.expression = expression
+        self.code = code
+        self.is_while = is_while
+
+    def __str__(self) -> str:
+        loop = "while" if self.is_while else "if"
+        return f"({loop}({self.expression}) {self.code})"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+
+class FuncDefNode(Node):
+    def __init__(self, name: Token, params: Dict[str, int], code: List[Union[AssignNode, PrintNode, IfWhileNode]]):
         Node.__init__(self, name.pos)
         self.name = name.content
         self.params = params
@@ -63,84 +130,23 @@ class FuncDef(Node):
     def __repr__(self) -> str:
         return self.__str__()
 
-
-class Print(Node):
-    def __init__(self, value: List[Type[Node]], pos: int):
-        Node.__init__(self, pos)
-        self.value = value
-
-    def __str__(self) -> str:
-        """ returns content, pos and kind of Token. """
-        return f"print {self.value}"
-
-    def __repr__(self) -> str:
-        """ returns content, pos and kind of Token. """
-        return self.__str__()
-
-
-class IfWhile(Node):
-    def __init__(self, expression: Type[Node], code: List[Type[Node]], is_while: bool):
-        Node.__init__(self, expression.pos)
-        self.expression = expression
-        self.code = code
-        self.is_while = is_while
-
-    def __str__(self) -> str:
-        """ returns content, pos and kind of Token. """
-        loop = "while" if self.is_while else "if"
-        return f"({loop}({self.expression}) {self.code})"
-
-    def __repr__(self) -> str:
-        """ returns content, pos and kind of Token. """
-        return self.__str__()
-
-
-class Operation(Node):
-    def __init__(self, lhs: Union[FuncExe, Variable, Value], operator, rhs: Union[FuncExe, Variable, Value]):
-        Node.__init__(self, operator.pos)
-        self.operator = operator.species
-        self.rhs = rhs
-        self.lhs = lhs
-
-    def __str__(self) -> str:
-        """ returns content, pos and kind of Token. """
-        return f"({self.lhs} {self.operator} {self.rhs})"
-
-    def __repr__(self) -> str:
-        """ returns content, pos and kind of Token. """
-        return self.__str__()
-
-
-class Assign(Node):
-    def __init__(self, variable: Token, value: Type[Node]):
-        Node.__init__(self, variable.pos)
-        self.name = variable.content
-        self.value = value
-
-
-    def __str__(self) -> str:
-        return f"{self.name} = {self.value}"
-
-    def __repr__(self) -> str:
-        return self.__str__()
-
-
 # ---------------------------------- ## ---------------------------------- ## ---------------------------------- #
 
-def peek(tokens: List[Token], species: List[TokenSpecies]) -> bool:
+
+def is_front(tokens: List[Token], species: List[TokenSpecies]) -> bool:
     return len(tokens) != 0 and tokens[0].species in species
 
 
-def get_def_parameters(tokens: List[Token]) -> Tuple[Dict[str, int], List[Token]]:
-    params = {tokens.pop(0).content: 0} if peek(tokens, [TokenSpecies.ID]) else {}
-    if peek(tokens, [TokenSpecies.SEP]):
-        other_params, tokens = get_def_parameters(tokens[1:])
+def parse_def_parameters(tokens: List[Token]) -> Tuple[Dict[str, int], List[Token]]:
+    params = {tokens.pop(0).content: 0} if is_front(tokens, [TokenSpecies.ID]) else {}
+    if is_front(tokens, [TokenSpecies.SEP]):
+        other_params, tokens = parse_def_parameters(tokens[1:])
         params.update(other_params)
         return params, tokens
-    elif peek(tokens, [TokenSpecies.CLOSEBR]):
+    elif is_front(tokens, [TokenSpecies.CLOSEBR]):
         return params, tokens
     else:
-        raise ParserError("EXPECTED PARAMS U FUCKING DOG")
+        raise ParserError("Parameters", tokens.pop(0) if len(tokens) != 0 else None)
 
 
 def get_or_riot(tokens: List[Token], species: TokenSpecies) -> Tuple[Token, List[Token]]:
@@ -148,97 +154,95 @@ def get_or_riot(tokens: List[Token], species: TokenSpecies) -> Tuple[Token, List
         if (token := tokens.pop(0)).species == species:
             return token, tokens
         else:
-            raise ParserError(f"EXPECTED {species} BUT GOT {token}")
+            raise ParserError(species.name, token)
     else:
-        raise ParserError(f"EXPECTED {species} BUT GOT NOTHING")
+        raise ParserError(species.name, None)
 
 
-def parser(tokens: List[Token]) -> List[FuncDef]:
+def parser(tokens: List[Token]) -> List[FuncDefNode]:
     _, tokens = get_or_riot(tokens, TokenSpecies.DEF)
     name, tokens = get_or_riot(tokens, TokenSpecies.ID)
     _, tokens = get_or_riot(tokens, TokenSpecies.OPENBR)
-    param, tokens = get_def_parameters(tokens)
+    param, tokens = parse_def_parameters(tokens)
     _, tokens = get_or_riot(tokens, TokenSpecies.CLOSEBR)
-    instr, tokens = get_instructions(tokens)
+    instr, tokens = parse_instructions(tokens)
     _, tokens = get_or_riot(tokens, TokenSpecies.END)
 
-    function = [FuncDef(name, param, instr)]
+    function = [FuncDefNode(name, param, instr)]
     return function + parser(tokens) if len(tokens) != 0 else function
 
 
-def get_instructions(tokens: List[Token]) -> Tuple[List[Type[Node]], List[Token]]:
+def parse_instructions(tokens: List[Token]) -> Tuple[List[Type[Node]], List[Token]]:
     node = None
-    if peek(tokens, [TokenSpecies.ID]):
+    if is_front(tokens, [TokenSpecies.ID]):
         val = tokens.pop(0)
-
         _, tokens = get_or_riot(tokens, TokenSpecies.ASSIGN)
+        pars, tokens = parse_values(tokens)
+        node = AssignNode(val, pars)
 
-        pars, tokens = value(tokens)
-        node = Assign(val, pars)
-
-    elif peek(tokens, [TokenSpecies.PRINT]):
+    elif is_front(tokens, [TokenSpecies.PRINT]):
         tokens.pop(0)
         opened, tokens = get_or_riot(tokens, TokenSpecies.OPENBR)
-        elements, tokens = params(tokens)
-        node = Print(elements, opened.pos)
+        elements, tokens = parse_params(tokens)
+        node = PrintNode(elements, opened.pos)
 
-    elif peek(tokens, [TokenSpecies.WHILE, TokenSpecies.IF]):
+    elif is_front(tokens, [TokenSpecies.WHILE, TokenSpecies.IF]):
         is_while = TokenSpecies.WHILE == tokens.pop(0).species
 
         _, tokens = get_or_riot(tokens, TokenSpecies.OPENBR)
-        pars, tokens = value(tokens)
+        pars, tokens = parse_values(tokens)
         _, tokens = get_or_riot(tokens, TokenSpecies.CLOSEBR)
 
-        cod, tokens = get_instructions(tokens)
-        node = IfWhile(pars, cod, is_while)
+        cod, tokens = parse_instructions(tokens)
+        node = IfWhileNode(pars, cod, is_while)
 
     if node:
         _, tokens = get_or_riot(tokens, TokenSpecies.END)
-        other_nodes, tokens = get_instructions(tokens)
+        other_nodes, tokens = parse_instructions(tokens)
         return [node] + other_nodes, tokens
     return [], tokens
 
 
-def params(tokens: List[Token]) -> Tuple[List[Type[Node]], List[Token]]:
-    val, tokens = value(tokens)
-    if peek(tokens, [TokenSpecies.SEP]):
+def parse_params(tokens: List[Token]) -> Tuple[List[Type[Node]], List[Token]]:
+    val, tokens = parse_values(tokens)
+    if is_front(tokens, [TokenSpecies.SEP]):
         tokens.pop(0)
-        other_val, tokens = params(tokens)
+        other_val, tokens = parse_params(tokens)
         return [val] + other_val, tokens
 
     _, tokens = get_or_riot(tokens, TokenSpecies.CLOSEBR)
     return [val], tokens
 
 
-def value(tokens: List[Token], operation: Token = None, lhs: Union[FuncExe, Variable, Value] = None) -> Tuple[Type[Node], List[Token]]:
+def parse_values(tokens: List[Token], operation: Token = None, lhs: Union[FuncExeNode, VariableNode, ValueNode] = None) -> Tuple[Type[Node], List[Token]]:
     val = None
-    if peek(tokens, [TokenSpecies.DIGIT]):
-        val = Value(tokens.pop(0))
-    elif peek(tokens, [TokenSpecies.ID]):
+    if is_front(tokens, [TokenSpecies.DIGIT]):
+        val = ValueNode(tokens.pop(0))
+    elif is_front(tokens, [TokenSpecies.ID]):
         name = tokens.pop(0)
-        if peek(tokens, [TokenSpecies.OPENBR]):
+        if is_front(tokens, [TokenSpecies.OPENBR]):
             tokens.pop(0)
-            if peek(tokens, [TokenSpecies.CLOSEBR]):
+            if is_front(tokens, [TokenSpecies.CLOSEBR]):
                 tokens.pop(0)
-                val = FuncExe(name, [])
+                val = FuncExeNode(name, [])
             else:
-                pars, tokens = params(tokens)
-                val = FuncExe(name, pars)
+                pars, tokens = parse_params(tokens)
+                val = FuncExeNode(name, pars)
         else:
-            val = Variable(name)
+            val = VariableNode(name)
 
     if val:
         if lhs:
-            val = Operation(lhs, operation, val)
-        if peek(tokens, [TokenSpecies.ADD, TokenSpecies.SUB, TokenSpecies.NOTEQUAL,
-                         TokenSpecies.GREATER, TokenSpecies.EQUALS, TokenSpecies.LESSER]):
+            val = OperationNode(lhs, operation, val)
+        if is_front(tokens, [TokenSpecies.ADD, TokenSpecies.SUB, TokenSpecies.NOTEQUAL,
+                             TokenSpecies.GREATER, TokenSpecies.EQUALS, TokenSpecies.LESSER]):
             operation = tokens.pop(0)
-            val, tokens = value(tokens, operation, val)
-        if peek(tokens, [TokenSpecies.SEP, TokenSpecies.CLOSEBR, TokenSpecies.END]):
+            val, tokens = parse_values(tokens, operation, val)
+        if is_front(tokens, [TokenSpecies.SEP, TokenSpecies.CLOSEBR, TokenSpecies.END]):
             return val, tokens
-        print(val)
-        raise ParserError("Expected end of statement.")
-    raise ParserError("Expected a value but didnt get it")
+
+        raise ParserError(TokenSpecies.END.name, tokens.pop(0) if len(tokens) != 0 else None)
+    raise ParserError("ValueNode, variable or function", tokens.pop(0) if len(tokens) != 0 else None)
 
 
 if __name__ == "__main__":
@@ -247,7 +251,5 @@ if __name__ == "__main__":
     file.close()
 
     tok = lexer(filecontent, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]")
-
     ast = parser(tok)
-
     print(ast)

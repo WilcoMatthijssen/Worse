@@ -14,19 +14,16 @@
        val = val - exp;
    ;
 ;
+
 ?odd(n)
-    if(n == 0)
-        sos = 0;
-    ;
+    sos = 0;
     if(n != 0)
         sos = even(n-1);
     ;
 ;
 
 ?even(n)
-    if(n == 0)
-        sos = 1;
-    ;
+    sos = 1;
     if(n != 0)
         sos = odd(n-1);
     ;
@@ -35,6 +32,7 @@
 
 ?main(arg,a)
     print(72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100);
+;
 	a=10+20+20;
 	if(a)
 		a=20;
