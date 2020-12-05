@@ -1,6 +1,7 @@
 import re
 from enum import Enum
 from typing import List, Type
+from functools import reduce
 
 
 class TokenSpecies(Enum):
@@ -63,30 +64,31 @@ def lexer(code: str, rules: Type[Enum], unknowns: str) -> List[Token]:
 
 
 def morse_converter(text, is_morse=True):
-    morse_dict = {
-        ".-": "a",
+    """ Converts text to morse when is_morse is False and converts morse text to text if is_morse is True. """
+    morse = {
+        ".-":   "a",
         "-...": "b",
         "-.-.": "c",
-        "-..": "d",
-        ".": "e",
+        "-..":  "d",
+        ".":    "e",
         "..-.": "f",
-        "--.": "g",
+        "--.":  "g",
         "....": "h",
-        "..": "i",
+        "..":   "i",
         ".---": "j",
-        "-.-": "k",
+        "-.-":  "k",
         ".-..": "l",
-        "--": "m",
-        "-.": "n",
-        "---": "o",
+        "--":   "m",
+        "-.":   "n",
+        "---":  "o",
         ".--.": "p",
         "--.-": "q",
-        ".-.": "r",
-        "...": "s",
-        "-": "t",
-        "..-": "u",
+        ".-.":  "r",
+        "...":  "s",
+        "-":    "t",
+        "..-":  "u",
         "...-": "v",
-        ".--": "w",
+        ".--":  "w",
         "-..-": "x",
         "-.--": "y",
         "--..": "z",
@@ -120,29 +122,32 @@ def morse_converter(text, is_morse=True):
         "..--.-": "_",
         ".--.-.": "@",
         "/":      " ",
+        "\n":     "\n",
+        "\t":     "\t"
+
     }
+    text = text.lower()
     if is_morse:
+        # Convert morse to text
         if unknown := list(re.compile(r"[^-\./\s]").finditer(text)):
             raise LexerError(unknown[0][0], "position", unknown[0].start())
-        morse_items = re.compile(r"(?<![.\-/])[.\-/]+").findall(text)
-        result = "".join(map(lambda x: morse_dict[x], morse_items))
+        morse_items = re.compile(r"(?<![.\-/])[\.\t\n\-/]+").findall(text)
+        result = "".join(map(lambda x: morse[x], morse_items))
+
     else:
-        reversed_morse_dict = dict(map(lambda kv: (kv[0], (kv[1])), morse_dict.items()))
-        mores = "".join(map(lambda ch: f"{reversed_morse_dict[ch]} " if ch in reversed_morse_dict.keys() else ch, text))
-        result = mores.replace("/ ", "")
+        # Convert text to morse
+        rv_morse = dict(map(lambda kv: (kv[1], (kv[0])), morse.items()))
+        # result = " ".join(map(lambda ch: rv_morse[ch] if ch in rv_morse.keys() else ch, text))
+        result = reduce(lambda total, ch: " ".join((total, rv_morse[ch] if ch in rv_morse.keys() else ch)), text, "")
+
     return result
 
-suck_it_jan = lambda code, rules: list(map(lambda m: Token(m.lastgroup, m.group(m.lastgroup), m.start()), re.compile("|".join(list(map(lambda r: f"(?P<{r.name}>{r.parse_values})", rules)))).finditer(code)))
 
 if __name__ == "__main__":
     file = open("Worse.txt")
-    filecontent = file.read()
+    file_content = file.read()
     file.close()
-    #print(lexer(filecontent, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]"))
+    print(lexer(file_content, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]"))
 
     q = ".--- .. .--- / --- . - .-.. ..- .-.. / --.. ..- .. --. / .--- . / -- --- . -.. . .-."
-    print(morse_converter(filecontent, False))
-
-
-
-
+    print(morse_converter(q, False))
