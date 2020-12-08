@@ -118,34 +118,34 @@ class IfWhileNode(Node):
 
     def __str__(self) -> str:
         loop = "while" if self.is_while else "if"
-        return f"({loop}({self.expression}) {self.actions})"
+        return f"({loop}({self.condition}) {self.actions})"
 
     def __repr__(self) -> str:
         return self.__str__()
 
 
 class FuncDefNode(Node):
-    def __init__(self, name: Token, params: Dict[str, int], code: List[Union[AssignNode, PrintNode, IfWhileNode]]):
+    def __init__(self, name: Token, params: Dict[str, int], actions: List[Union[AssignNode, PrintNode, IfWhileNode]]):
         """ Init for FuncDefNode. """
         Node.__init__(self, name.pos)
         self.name = name.content
         self.params = params
-        self.code = code
+        self.actions = actions
 
     def __str__(self) -> str:
-        return f"Define {self.name}({self.params}){self.code};"
+        return f"Define {self.name}({self.params}){self.actions};"
 
     def __repr__(self) -> str:
         return self.__str__()
 
 # ---------------------------------- ## ---------------------------------- ## ---------------------------------- #
 
-
+# is_front :: List[TokenSpecies] -> bool
 def is_front(tokens: List[Token], species: List[TokenSpecies]) -> bool:
     """ Returns True if first token in tokens is of the given species. """
     return len(tokens) != 0 and tokens[0].species in species
 
-
+# parse_def_parameters :: List[Token] -> Tuple[Dict[str, int], List[Token]]
 def parse_def_parameters(tokens: List[Token]) -> Tuple[Dict[str, int], List[Token]]:
     """ Parse parameter names until an ending token is encountered. """
     params = {tokens.pop(0).content: 0} if is_front(tokens, [TokenSpecies.ID]) else {}
@@ -159,6 +159,7 @@ def parse_def_parameters(tokens: List[Token]) -> Tuple[Dict[str, int], List[Toke
         raise ParserError("Parameters", tokens.pop(0) if len(tokens) != 0 else None)
 
 
+# get_or_riot :: List[Token] -> TokenSpecies -> Tuple[Token, List[Token]]
 def get_or_riot(tokens: List[Token], species: TokenSpecies) -> Tuple[Token, List[Token]]:
     """ Returns a token if its the wanted species and otherwise it throws an error. """
     if len(tokens) != 0:
@@ -170,6 +171,7 @@ def get_or_riot(tokens: List[Token], species: TokenSpecies) -> Tuple[Token, List
         raise ParserError(species.name, None)
 
 
+# parser :: List[Token] -> List[FuncDefNode]
 def parser(tokens: List[Token]) -> List[FuncDefNode]:
     """ Parse functions until no tokens are left. """
     _, tokens = get_or_riot(tokens, TokenSpecies.DEF)
@@ -184,14 +186,15 @@ def parser(tokens: List[Token]) -> List[FuncDefNode]:
     return function + parser(tokens) if len(tokens) != 0 else function
 
 
+# parse_instructions :: List[Token] -> Tuple[List[Type[Node]], List[Token]]
 def parse_instructions(tokens: List[Token]) -> Tuple[List[Type[Node]], List[Token]]:
     """ Parse instructions until a final ending token is encountered. """
     node = None
     if is_front(tokens, [TokenSpecies.ID]):
-        val = tokens.pop(0)
+        name = tokens.pop(0)
         _, tokens = get_or_riot(tokens, TokenSpecies.ASSIGN)
-        pars, tokens = parse_value(tokens)
-        node = AssignNode(val, pars)
+        value, tokens = parse_value(tokens)
+        node = AssignNode(name, value)
 
     elif is_front(tokens, [TokenSpecies.PRINT]):
         tokens.pop(0)
@@ -203,11 +206,11 @@ def parse_instructions(tokens: List[Token]) -> Tuple[List[Type[Node]], List[Toke
         is_while = TokenSpecies.WHILE == tokens.pop(0).species
 
         _, tokens = get_or_riot(tokens, TokenSpecies.OPENBR)
-        pars, tokens = parse_value(tokens)
+        parameters, tokens = parse_value(tokens)
         _, tokens = get_or_riot(tokens, TokenSpecies.CLOSEBR)
 
-        cod, tokens = parse_instructions(tokens)
-        node = IfWhileNode(pars, cod, is_while)
+        instructions, tokens = parse_instructions(tokens)
+        node = IfWhileNode(parameters, instructions, is_while)
 
     if node:
         _, tokens = get_or_riot(tokens, TokenSpecies.END)
@@ -216,6 +219,7 @@ def parse_instructions(tokens: List[Token]) -> Tuple[List[Type[Node]], List[Toke
     return [], tokens
 
 
+# parse_params :: List[Token] -> Tuple[List[Type[Node]], List[Token]]
 def parse_params(tokens: List[Token]) -> Tuple[List[Type[Node]], List[Token]]:
     """ Parse values until an ending token is encountered. """
     val, tokens = parse_value(tokens)
@@ -228,6 +232,7 @@ def parse_params(tokens: List[Token]) -> Tuple[List[Type[Node]], List[Token]]:
     return [val], tokens
 
 
+# parse_value :: List[Token] -> Token -> Union[FuncExeNode, VariableNode, ValueNode] -> Tuple[Type[Node], List[Token]]
 def parse_value(tokens: List[Token], operation: Token = None,
                  lhs: Union[FuncExeNode, VariableNode, ValueNode] = None) -> Tuple[Type[Node], List[Token]]:
     """ Parse value until an ending token is encountered. """

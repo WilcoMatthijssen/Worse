@@ -49,6 +49,7 @@ class Token:
         return f"(\"{self.content}\", {self.pos}, {self.species})"
 
 
+# lexer :: str -> Type[Enum] -> str -> List[Token]
 def lexer(code: str, rules: Type[Enum], unknowns: str) -> List[Token]:
     """ Finds all tokens in string and throws LexerError if an unknown is found"""
     # Check for unknowns and throw LexerError if found.
@@ -63,7 +64,8 @@ def lexer(code: str, rules: Type[Enum], unknowns: str) -> List[Token]:
     return list(map(lambda m: Token(rules[m.lastgroup], m[0], m.start()), search(code)))
 
 
-def morse_converter(text, is_morse=True):
+# morse_converter :: str -> bool -> str
+def morse_converter(text: str, is_morse: bool = True) -> str:
     """ Converts text to morse when is_morse is False and converts morse text to text if is_morse is True. """
     morse = {
         ".-":   "a",
@@ -149,5 +151,5 @@ if __name__ == "__main__":
     file.close()
     print(lexer(file_content, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]"))
 
-    q = ".--- .. .--- / --- . - .-.. ..- .-.. / --.. ..- .. --. / .--- . / -- --- . -.. . .-."
-    print(morse_converter(q, False))
+    morse_text = "-.. .. - / .. ... / -- --- .-. ... . -.-. --- -.. . .-.-.- / ... --- ..."
+    print(morse_converter(morse_text, True))

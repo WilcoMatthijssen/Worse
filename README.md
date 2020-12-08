@@ -124,3 +124,50 @@ All the following actions make use of values so this is a short description of w
 ```
 
 result is 1 i.e. True
+
+
+## Criteria beargumentatie
+
+- **De code is goed becommentariëerd.**  
+Elke functie heeft een docstring.
+
+- **Er is een duidelijke README.**  
+De README die u nu leest.
+
+- **De code is geschreven in functionele programmeerstijl.**  
+De lexer, parser and runner zijn pure functies dat geen shared state, mutable data, of bijwerkingen hebben.
+Het GUI gedeelte in alleen niet zo functioneel. 
+Het probleem hiermee is dat het wel mogelijk is door elke functie een gui object mee geef wat de gehele interpreter vervuil door telkens 1 argument mee te geven die in 2 functies gebruikt wordt. 
+Het alternatief was de ingebouwde print te gebruiken wat in de achtergrond hetzelfde zou doen als de gui.
+
+
+- **De gekozen of ontworpen programmeertaal is Turingcompleet.**  
+    Dit is een voorbeeld van een Truth machine wat werkt in de programmeertaal Worse (vervang <INPUT> met uw eigen input):
+    ``` 
+    ..--.. -- .- .. -. -.--. -.--.- .. -. .--. ..- - -...- <INPUT> -.-.-. .. ..-. -.--. .. -. .--. ..- - -...- -...- .---- -.--.- ... --- ... -...- .---- -.-.-. -.-.-. .. ..-. -.--. .. -. .--. ..- - -.-.-- -...- .---- -.--.- ... --- ... -...- ----- -.-.-. -.-.-. -.-.-.
+  ```
+
+- **Deze taal moet minstens of loops of goto-statments, of lambda-calculus ondersteunen.**  
+    De taal heel while loops en zien er als volgt uit:
+    <INSERT VOORBEELD>
+
+- **De taal mag géén Python, Brainfuck, C++ , of Assembler zijn.**  
+    Worse is mijn eigen verzonnen taal en het is geen van die drie.
+
+- **Het gebruik van minstens 3 hogere-orde functies.**  
+    Hogere orde functies worden gebruikt. De functies die worden gebruikt zijn reduce en map in de volgende stukken.
+    <INSERT VOORBEELD>
+
+- **De code moet minstens één zelf-geschreven decorator (met -syntax) bevatten en gebruiken**  
+    Er is een decorator gebruikt in de runner voor het zien welke functie gerunned wordt en hoe ver het op de stack is.
+    <INSERT VOORBEELD>
+
+- **• Alle functions moeten type-annotated zijn.**  
+    Alle functies maken gebruik van type-hinting.
+
+- **• De code moet classes bevatten.**  
+    Er zijn classes gemaakt voor de tokens en alle verschillende soorten nodes.
+    <INSERT VOORBEELD>
+
+- **Object-printing functions voor elke class.** 
+    Elke class die ik gemaakt voor de lexer, parser en runner is te printen.
