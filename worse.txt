@@ -1,0 +1,17 @@
+ ?odd(n)
+    sos = 0;
+    if(n != 0)
+        sos = even(n-1);
+    ;
+;
+
+?even(n)
+    sos = 1;
+    if(n != 0)
+        sos = odd(n-1);
+    ;
+;
+
+?main()
+    sos = even(100);
+;

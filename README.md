@@ -1,173 +1,125 @@
 # Worse
-An interpreter for the programming language Worse.  
+Wilco's programmeertaal in Morse.  
+
+## Worse is een turing complete programmeertaal omdat:
+- In de taal Worse is conditional branching mogelijk omdat het if statements waarin functies of andere acties binnen kunnen worden uitgevoerd.
+- While loops zijn geimplementeerd in Worse en kan oneindig loopen totdat de recursion limit is bereikt of wanneer er een stack-overflow is.
+- Er is geen limiet voor het grootte van het geheugen. Variabellen kunnen oneindig vaak aangemaakt zolang de hardware het ondersteund en er unieke series aan karakters bestaan voor variabelnamen.
+- Worse heeft de mogelijkheid om waardes te printen en teruggeven bij de main functie. Het ingeven van input voor de programma's kan worden gedaan door het in de code die uitgevoerd wordt te typen.
+- Het halting probleem is lastig om op te lossen. In Worse is het verplicht om voor elke functie een waarde te hebben dat wordt teruggegeven. Dat zou kunnen betekenen dat alle functies bedoeld zijn om op een gegeven moment een waarde terug te geven en niet oneindig loopen.
 
 
-## How to program in Worse:
-Worse is a language that can be written in the morse language.
-Worse supports whitespace but doesnt need it.
-For ease of use the following explanation of how to program in Worse wil not be in morse and include whitespace.
+## Code is geschreven in functionele stijl.
+De lexer, parser and runner zijn pure functies dat geen shared state, mutable data, of bijwerkingen hebben. 
 
-### main
-Worse is a programming language that works with functions and doesn't have global variables.
-Therefore when running Worse it runs a function which is called ```main``` or in morse ```-- .- .. -.```. 
-This main function does not allow parameters and if defined will not be used.
 
+## De taal ondersteund:
+De taal Worse ondersteund Loops.
+Het voorbeeld hieronder print '$' 10 keer door middel van een while loop.
 ```
-?main()
-    print(72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100);
-;
-
- ..--.. -- .- .. -. -.--. -.--.- 
- / / / / .--. .-. .. -. - -.--. --... ..--- --..-- / .---- ----- .---- --..-- / .---- ----- ---.. --..-- / .---- ----- ---.. --..-- / .---- .---- .---- --..-- / ...-- ..--- --..-- / .---- .---- ----. --..-- / .---- .---- .---- --..-- / .---- .---- ....- --..-- / .---- ----- ---.. --..-- / .---- ----- ----- -.--.- -.-.-. 
- -.-.-.
-
+ ..--.. -- .- .. -. -.--. -.--.- -. -...- .---- ----- -.-.-. .-- .... .. .-.. . -.--. -. ---... -...- ----- -.--.- -. -...- -. -....- .---- -.-.-. .--. .-. .. -. - -.--. ...-- -.... -.--.- -.-.-. -.-.-. ... --- ... -...- .---- -.-.-. -.-.-.
 ```
 
-To define a function you need to start with a ```?``` or in morse with ```..--..``` to show you're defining a function.
-After that you give it a name. The name needs to start with a letter and can be followed with letters or numbers. 
-The name also can't be a ```while```, ```if```, and ```print``` because these are used for other things, 
-although your name can contain those three as for example ```loopprint```. 
+## Bevat
+- **Classes met inheritance:**
+    De base class is [Node](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L20) en de volgende erven allemaal over van Node.
+    - [ValueNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L33)
+    - [VariableNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L46)
+    - [FuncExeNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L59)
+    - [OperationNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L73)
+    - [AssignNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L89)
+    - [PrintNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L103)
+    - [IfWhileNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L116)
+    - [FuncDefNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L133)
 
-When you gave your program a name you can start with defining parameters which you can do with an open bracket.
-After this you can type all your parameters with the same rules as your function name separated by commas and closed by a closing bracket.
-If you dont have any parameters to define you can leave the brackets empty just as shown for the main function.
+- **Object-printing voor elke class:**
+    Ja
+   
+- **Decorator:**
+    - [Definitie](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L19)
+    - [Toepassing_1](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L28)
+    - [Toepassing_2](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L40)
+    - [Toepassing_3](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L72)
+    - [Toepassing_4](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L83)
+    - [Toepassing_5](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L99)
+    - [Toepassing_6](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L112)
+    
+- **Type-annotatie:**
+    - Haskell-stijl in comments: [ja]
+    - Python-stijl in functiedefinities: [ja]
+    
+- **Toepassing hogere-orde functies:**
+    - [map lexer.py#L60](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L60)
+    - [map lexer.py#L64](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L64)
+    - [map lexer.py#L137](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L137)
+    - [map lexer.py#L141](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L141)
+    - [reduce lexer.py#L143](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L143)
+    - [get_op_func runner.py#L29](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L29)
+    - [map runner.py#L61](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L61)
+    - [reduce runner.py#L76](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L76)
+    - [map runner.py#L90](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L90)
+    - [reduce runner.py#L91](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L91)
+    - [reduce runner.py#L105](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L105)
 
-Now you can start by coding the functionality of your function. 
-Worse has four actions you can use for that which are variable assignment, if statements, while statements, and print.
+    
 
-### Value
-All the following actions make use of values so this is a short description of what a value is in Worse.
-```pr```
-
-### Variable assignment
-```
-?main()
-    sos = 10 + 10 + 10 - 30 + 1;
-;
- ..--.. -- .- .. -. -.--. -.--.- 
- / / / / ... --- ... / -...- / .---- ----- / .-.-. / .---- ----- / .-.-. / .---- ----- / -....- / ...-- ----- / .-.-. / .---- -.-.-. 
- -.-.-.
-
-```
-
-### If statement
-```
-?main()
-    sos = 10;
-    if(sos == 10)
+## Interpreter-functionaliteit Must-have:
+- **Functies:**
+    Meer per file
+    
+    _Voorbeeld van de main functie wat een andere functie aanroept en het resultaat hiervan zelf teruggeeft:_
+    ```
+   ..--.. ..-. ..- -. -.-. .---- -.--. -.--.- ... --- ... -...- ..--- -.-.-. -.-.-. ..--.. -- .- .. -. -.--. -.--.- ... --- ... -...- ..-. ..- -. -.-. .---- -.--. -.--.- -.-.-. -.-.-. 
+    ```
+    
+    
+- **Functie-parameters kunnen worden meegegeven worden door:**
+    In de code de functie te gebruiken en parameters in te geven in de haken.
+    
+    _Voorbeeld van een functie dat wordt aangeroepen en 2 parameters die worden meegegeven:_
+    ```
+   ..--.. ..-. ..- -. -.-. .---- -.--. -. --..-- .- -.. -.. -.--.- ... --- ... -...- -. .-.-. .- -.. -.. -.-.-. -.-.-. ..--.. -- .- .. -. -.--. -.--.- ... --- ... -...- ..-. ..- -. -.-. .---- -.--. .---- ----- --..-- .---- ----- -.--.- -.-.-. -.-.-. 
+    ```
+    
+- **Functies kunnen andere functies aanroepen:**
+    ```
+    ?odd(n)
+        sos = 0;
+        if(n != 0)
+            sos = even(n-1);
+        ;
+    ;
+    
+    ?even(n)
         sos = 1;
+        if(n != 0)
+            sos = odd(n-1);
+        ;
     ;
-;
-..--.. -- .- .. -. -.--. -.--.- 
-... --- ... -...- .---- ----- -.-.-. 
-.. ..-. -.--. ... --- ... -...- -...- .---- ----- -.--.- 
-... --- ... -...- .---- -.-.-. 
--.-.-. 
--.-.-.
-
-```
-
-### While statement
-```
-?main()
-    sos = 10;
-    while(sos != 0)
-        sos = sos - 1;
+    
+    ?main()
+        sos = even(100);
     ;
-;
-..--.. -- .- .. -. -.--. -.--.- 
-... --- ... -...- .---- ----- -.-.-. 
-.-- .... .. .-.. . -.--. ... --- ... -.-.-- -...- ----- -.--.- 
-... --- ... -...- ... --- ... -....- .---- -.-.-. 
--.-.-. 
--.-.-.
-```
+    ```
+    
+    ```
+     ..--.. --- -.. -.. -.--. -. -.--.- ... --- ... -...- ----- -.-.-. .. ..-. -.--. -. / -.-.-- -...- / ----- -.--.- ... --- ... -...- . ...- . -. -.--. -. -....- .---- -.--.- -.-.-. -.-.-. -.-.-. 
+     ..--.. . ...- . -. -.--. -. -.--.- ... --- ... -...- .---- -.-.-. .. ..-. -.--. -. / -.-.-- -...- / ----- -.--.- ... --- ... -...- --- -.. -.. -.--. -. -....- .---- -.--.- -.-.-. -.-.-. -.-.-. 
+     ..--.. -- .- .. -. -.--. -.--.- ... --- ... -...- . ...- . -. -.--. .---- ----- ----- -.--.- -.-.-. -.-.-.
+    ```
 
-### Print
-```
-?main()
-    print(72, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100);
-    sos = 1;
-;
-..--.. -- .- .. -. -.--. -.--.- 
-.--. .-. .. -. - -.--. --... ..--- --..-- .---- ----- .---- --..-- .---- ----- ---.. --..-- .---- ----- ---.. --..-- .---- .---- .---- --..-- ...-- ..--- --..-- .---- .---- ----. --..-- .---- .---- .---- --..-- .---- .---- ....- --..-- .---- ----- ---.. --..-- .---- ----- ----- -.--.- -.-.-. 
-... --- ... -...- .---- -.-.-. 
--.-.-.
-```
-
-
-### odd & even functions
-```
-?odd(n)
-    sos = 0;
-    if(n != 0)
-        sos = even(n-1);
-    ;
-;
-
-?even(n)
-    sos = 1;
-    if(n != 0)
-        sos = odd(n-1);
-    ;
-;
-
-?main()
-    sos = even(100);
-;
-```
-
-```
- ..--.. --- -.. -.. -.--. -. -.--.- ... --- ... -...- ----- -.-.-. .. ..-. -.--. -. / -.-.-- -...- / ----- -.--.- ... --- ... -...- . ...- . -. -.--. -. -....- .---- -.--.- -.-.-. -.-.-. -.-.-. 
- ..--.. . ...- . -. -.--. -. -.--.- ... --- ... -...- .---- -.-.-. .. ..-. -.--. -. / -.-.-- -...- / ----- -.--.- ... --- ... -...- --- -.. -.. -.--. -. -....- .---- -.--.- -.-.-. -.-.-. -.-.-. 
- ..--.. -- .- .. -. -.--. -.--.- ... --- ... -...- . ...- . -. -.--. .---- ----- ----- -.--.- -.-.-. -.-.-.
-```
-
-result is 1 i.e. True
-
-
-## Criteria beargumentatie
-
-- **De code is goed becommentariëerd.**  
-Elke functie heeft een docstring.
-
-- **Er is een duidelijke README.**  
-De README die u nu leest.
-
-- **De code is geschreven in functionele programmeerstijl.**  
-De lexer, parser and runner zijn pure functies dat geen shared state, mutable data, of bijwerkingen hebben.
-Het GUI gedeelte in alleen niet zo functioneel. 
-Het probleem hiermee is dat het wel mogelijk is door elke functie een gui object mee geef wat de gehele interpreter vervuil door telkens 1 argument mee te geven die in 2 functies gebruikt wordt. 
-Het alternatief was de ingebouwde print te gebruiken wat in de achtergrond hetzelfde zou doen als de gui.
-
-
-- **De gekozen of ontworpen programmeertaal is Turingcompleet.**  
-    Dit is een voorbeeld van een Truth machine wat werkt in de programmeertaal Worse (vervang <INPUT> met uw eigen input):
-    ``` 
-    ..--.. -- .- .. -. -.--. -.--.- .. -. .--. ..- - -...- <INPUT> -.-.-. .. ..-. -.--. .. -. .--. ..- - -...- -...- .---- -.--.- ... --- ... -...- .---- -.-.-. -.-.-. .. ..-. -.--. .. -. .--. ..- - -.-.-- -...- .---- -.--.- ... --- ... -...- ----- -.-.-. -.-.-. -.-.-.
-  ```
-
-- **Deze taal moet minstens of loops of goto-statments, of lambda-calculus ondersteunen.**  
-    De taal heel while loops en zien er als volgt uit:
-    <INSERT VOORBEELD>
-
-- **De taal mag géén Python, Brainfuck, C++ , of Assembler zijn.**  
-    Worse is mijn eigen verzonnen taal en het is geen van die drie.
-
-- **Het gebruik van minstens 3 hogere-orde functies.**  
-    Hogere orde functies worden gebruikt. De functies die worden gebruikt zijn reduce en map in de volgende stukken.
-    <INSERT VOORBEELD>
-
-- **De code moet minstens één zelf-geschreven decorator (met -syntax) bevatten en gebruiken**  
-    Er is een decorator gebruikt in de runner voor het zien welke functie gerunned wordt en hoe ver het op de stack is.
-    <INSERT VOORBEELD>
-
-- **• Alle functions moeten type-annotated zijn.**  
-    Alle functies maken gebruik van type-hinting.
-
-- **• De code moet classes bevatten.**  
-    Er zijn classes gemaakt voor de tokens en alle verschillende soorten nodes.
-    <INSERT VOORBEELD>
-
-- **Object-printing functions voor elke class.** 
-    Elke class die ik gemaakt voor de lexer, parser en runner is te printen.
+- **Functie resultaat wordt op de volgende manier weergegeven:**
+    - Printen
+    - Return waarde
+    
+    _Voorbeeld van printen "Hello world" en 1 teruggeven als resultaat van de main functie:_
+    ```
+     ..--.. -- .- .. -. -.--. -.--.- .--. .-. .. -. - -.--. --... ..--- --..-- .---- ----- .---- --..-- .---- ----- ---.. --..-- .---- ----- ---.. --..-- .---- .---- .---- --..-- ...-- ..--- --..-- .---- .---- ----. --..-- .---- .---- .---- --..-- .---- .---- ....- --..-- .---- ----- ---.. --..-- .---- ----- ----- -.--.- -.-.-. ... --- ... -...- .---- -.-.-. -.-.-.
+    ```
+    _Output van voorbeeld:_
+    ```
+    Process starting with function: main
+    Hello world
+    Process finished with 1
+    ```
+    
