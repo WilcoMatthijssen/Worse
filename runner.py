@@ -24,23 +24,28 @@ def logging_decorator(func: Callable) -> Callable:
     return decorator
 
 
-# get_value :: Union[OperationNode, VariableNode, ValueNode, FuncExeNode] -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+# get_op_func :: Type[Enum] -> Callable
 @logging_decorator
-def get_value(action: Union[OperationNode, VariableNode, ValueNode, FuncExeNode], variables: Dict[str, int],
-              functions: Dict[str, FuncDefNode]) -> int:
-    """ Gets integer value of given action. """
+def get_op_func(species: Type[Enum]) -> Callable:
+    """ Give corresponding function to enum"""
     op = {TokenSpecies.ADD: operator.add,
           TokenSpecies.SUB: operator.sub,
           TokenSpecies.GREATER: operator.gt,
           TokenSpecies.LESSER: operator.lt,
           TokenSpecies.EQUALS: operator.eq,
           TokenSpecies.NOTEQUAL: operator.ne}
+    return op[species]
 
+# get_value :: Union[OperationNode, VariableNode, ValueNode, FuncExeNode] -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+@logging_decorator
+def get_value(action: Union[OperationNode, VariableNode, ValueNode, FuncExeNode], variables: Dict[str, int],
+              functions: Dict[str, FuncDefNode]) -> int:
+    """ Gets integer value of given action. """
     value = 0
     if action.__class__.__name__ == "OperationNode":
         lhs = get_value(action.lhs, variables, functions)
         rhs = get_value(action.rhs, variables, functions)
-        value = int(op[action.operator](lhs, rhs))
+        value = int(get_op_func(action.operator)(lhs, rhs))
 
     elif action.__class__.__name__ == "VariableNode":
         if action.name not in variables.keys():

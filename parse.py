@@ -23,6 +23,12 @@ class Node:
         """ Init for Node. """
         self.pos = pos
 
+    def __str__(self) -> str:
+        return f"Empty base Node"
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
 
 class ValueNode(Node):
     def __init__(self, value: Token):
@@ -140,10 +146,12 @@ class FuncDefNode(Node):
 
 # ---------------------------------- ## ---------------------------------- ## ---------------------------------- #
 
+
 # is_front :: List[TokenSpecies] -> bool
 def is_front(tokens: List[Token], species: List[TokenSpecies]) -> bool:
     """ Returns True if first token in tokens is of the given species. """
     return len(tokens) != 0 and tokens[0].species in species
+
 
 # parse_def_parameters :: List[Token] -> Tuple[Dict[str, int], List[Token]]
 def parse_def_parameters(tokens: List[Token]) -> Tuple[Dict[str, int], List[Token]]:
