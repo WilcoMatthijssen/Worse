@@ -1,6 +1,6 @@
  ?odd(n)
     sos = 0;
-    if(n)
+    if(n!=0:=2)
         sos = even(n-1);
     ;
 ;
