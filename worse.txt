@@ -1,6 +1,6 @@
  ?odd(n)
     sos = 0;
-    if(n!=0:=2)
+    if(n)
         sos = even(n-1);
     ;
 ;
@@ -10,7 +10,7 @@
     if(n)
         sos = odd(n-1);
     ;
-    print(1+2+3-3);
+
 ;
 
 ?main()

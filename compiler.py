@@ -1,28 +1,22 @@
-from lexer import *
-from parse import *
+from lexer import lexer
+from parse import parser
 from functools import reduce
-from typing import Dict
-from copy import deepcopy as dc
+from classes import *
 
-class RunnerError(Exception):
-    """ Error for when something goes wrong running the Worse code """
+
+class CompilerError(Exception):
+    """ Error for when something goes wrong compiling the Worse code """
     def __init__(self, msg: str):
         super().__init__(msg)
 
 
-class ASM:
-    def __init__(self, curr: str, vars: List[str], defs: Dict[str, FuncDefNode], body: str):
-        self.curr = curr
-        self.vars = vars
-        self.defs = defs
-        self.body = body
-
-
-# asm_value :: ASM -> Union[ValueNode, VariableNode, OperationNode, FuncExeNode] -> str
-def asm_value(asm: ASM, node: Union[ValueNode, VariableNode, OperationNode, FuncExeNode]) -> str:
-    if isinstance(node, ValueNode):
+# asm_value :: ASM -> Type[ValueNode] -> str
+@deepcopy_decorator
+def asm_value(asm: ASM, node: Type[ValueNode]) -> str:
+    """ Converts a Node to Cortex M0 Assembly. """
+    if isinstance(node, IntNode):
         if 0 < int(node.value) > 255:
-            raise RunnerError(f"Value {node.value} at {node.pos} can't be assigned directly")
+            raise CompilerError(f"Value {node.value} at {node.pos} can't be assigned directly")
         new = f"\tMOV R0, #{node.value}"
 
     elif isinstance(node, VariableNode):
@@ -31,10 +25,13 @@ def asm_value(asm: ASM, node: Union[ValueNode, VariableNode, OperationNode, Func
         new = f"\tLDR R2, ={asm.curr}_{node.name}\n\tLDR R0, [R2]"
 
     elif isinstance(node, OperationNode):
+
         lhs = asm_value(asm, node.lhs)
         push = "\tPUSH {R0}"
         rhs = asm_value(asm, node.rhs)
         pop = "\tPOP {R1}"
+
+        # Get assembly to apply operation
         if node.operator == TokenSpecies.ADD:
             operation = "\tADD R0, R1, R0"
         elif node.operator == TokenSpecies.SUB:
@@ -50,14 +47,14 @@ def asm_value(asm: ASM, node: Union[ValueNode, VariableNode, OperationNode, Func
 
         new = "\n".join([lhs, push, rhs, pop, operation])
 
-    else:  # node.__class__.__name__ == "FuncExeNode"
+    else:  # isinstance(node, FuncExeNode):
         # Check if function exists.
         if node.name not in asm.defs.keys():
-            raise RunnerError(f"Function \"{node.name}\" not defined.")
+            raise CompilerError(f"Function \"{node.name}\" not defined.")
 
         # Check if amount of given params is correct.
         if (name_amount := len(asm.defs[node.name].params)) != (value_amount := len(node.params)):
-            raise RunnerError(f"Expected {name_amount} but got {value_amount} for function {node.name}.")
+            raise CompilerError(f"Expected {name_amount} but got {value_amount} for function {node.name}.")
 
         values = map(lambda p: asm_value(asm, p), node.params)
         assign = map(lambda par_name: f"\tLDR R2, ={node.name}_{par_name}\n\tSTR R0, [R2]", asm.defs[node.name].params)
@@ -66,8 +63,10 @@ def asm_value(asm: ASM, node: Union[ValueNode, VariableNode, OperationNode, Func
     return new
 
 
-# asm_action :: ASM -> Union[AssignNode, IfWhileNode, PrintNode] -> ASM
-def asm_action(asm: ASM, node: Union[AssignNode, IfWhileNode, PrintNode]) -> ASM:
+# asm_action :: ASM -> Type[ActionNode] -> ASM
+@deepcopy_decorator
+def asm_action(asm: ASM, node: Type[ActionNode]) -> ASM:
+    """ Converts an action to Cortex M0 assembly. """
     if isinstance(node, AssignNode):
         # Add variable to list of variables
         variables = asm.vars + [f"{asm.curr}_{node.name}"]
@@ -102,7 +101,9 @@ def asm_action(asm: ASM, node: Union[AssignNode, IfWhileNode, PrintNode]) -> ASM
 
 
 # asm_function :: FuncDefNode -> Dict[str, FuncDefNode] -> Tuple[str, List[str]]
+@deepcopy_decorator
 def asm_function(node: FuncDefNode, functions: Dict[str, FuncDefNode]) -> Tuple[str, List[str]]:
+    """ Creates a function in Cortex M0 assembly from a FuncDefNode. """
     # Create initial function ASM object
     variables = list(map(lambda param: f"{node.name}_{param}", node.params.keys()))
     start = f"{node.name}:\n\tPUSH {{R1, LR}}"
@@ -112,7 +113,7 @@ def asm_function(node: FuncDefNode, functions: Dict[str, FuncDefNode]) -> Tuple[
 
     # Check if function returns a value.
     if f"{node.name}_sos" not in asm.vars:
-        raise RunnerError(f"{node.name} at {node.pos} does not return a value.")
+        raise CompilerError(f"{node.name} at {node.pos} does not return a value.")
 
     # Create assembly to return value from function
     ending = f"\n\tLDR R2, ={node.name}_sos\n\tLDR R0, [R2]\n\tPOP {{ R1, PC }}\n"
@@ -121,14 +122,16 @@ def asm_function(node: FuncDefNode, functions: Dict[str, FuncDefNode]) -> Tuple[
 
 
 # assemble :: List[FuncDefNode] -> str -> str
-def assemble(ast: List[FuncDefNode], start_func: str = "main") -> str:
+@deepcopy_decorator
+def compiler(ast: List[FuncDefNode], start_func: str = "main") -> str:
+    """ Converts a list of FuncDefNodes to Cortex M0 assembly. """
     # Make dict of List of functions with the name of the function being the key
     funcs = dict(map(lambda func: (func.name, func), ast))
 
     if start_func not in funcs.keys():
-        raise RunnerError(f"Wanted to start at {start_func} but the function does not exist.")
+        raise CompilerError(f"Wanted to start at {start_func} but the function does not exist.")
     if func_len := len(funcs[start_func].params) != 0:
-        raise RunnerError(f"The {start_func} function can't be given parameters but expects {func_len}.")
+        raise CompilerError(f"The {start_func} function can't be given parameters but expects {func_len}.")
 
     # Get assembly for all functions and names for all variables
     instructions, variables = zip(*map(lambda n: asm_function(n, funcs), ast))
@@ -142,12 +145,11 @@ def assemble(ast: List[FuncDefNode], start_func: str = "main") -> str:
     return "\n".join([init, data, text, base])
 
 
-
 if __name__ == "__main__":
     file = open("Worse.txt")
     file_content = file.read()
     file.close()
 
-    tokenized_code = lexer(file_content, TokenSpecies, r"[^\:\=\!\+\-\(\)\,\;\?\s\w]")
-    a= parser(tokenized_code)
-    print(assemble(a))
+    tokenized_code = lexer(file_content)
+    a = parser(tokenized_code)
+    print(compiler(a))
