@@ -37,13 +37,13 @@ def asm_value(asm: ASM, node: Type[ValueNode]) -> str:
         elif node.operator == TokenSpecies.SUB:
             operation = "\tSUB R0, R1, R0"
         elif node.operator == TokenSpecies.EQUALS:
-            operation = f"\tCMP R0, R1\n\tMOV R0, #1\t\nBEQ _{node.pos}_EQUALS\n\tMOV R0, #0\n_{node.pos}_EQUALS"
+            operation = f"\tCMP R0, R1\n\tMOV R0, #1\n\tBEQ _{node.pos}_EQUALS\n\tMOV R0, #0\n_{node.pos}_EQUALS:"
         elif node.operator == TokenSpecies.NOTEQUAL:
-            operation = f"\tCMP R0, R1\n\tMOV R0, #1\t\nBNE _{node.pos}_NOTEQUAL\n\tMOV R0, #0\n_{node.pos}_NOTEQUAL"
+            operation = f"\tCMP R0, R1\n\tMOV R0, #1\n\tBNE _{node.pos}_NOTEQUAL\n\tMOV R0, #0\n_{node.pos}_NOTEQUAL:"
         elif node.operator == TokenSpecies.LESSER:
-            operation = f"\tCMP R0, R1\n\tMOV R0, #1\t\nBLT _{node.pos}_LESSER\n\tMOV R0, #0\n_{node.pos}_LESSER"
+            operation = f"\tCMP R0, R1\n\tMOV R0, #1\n\tBLT _{node.pos}_LESSER\n\tMOV R0, #0\n_{node.pos}_LESSER:"
         else:  # node.operator == TokenSpecies.GREATER:
-            operation = f"\tCMP R0, R1\n\tMOV R0, #1\t\nBGT _{node.pos}_GREATER\n\tMOV R0, #0\n_{node.pos}_GREATER"
+            operation = f"\tCMP R0, R1\n\tMOV R0, #1\n\tBGT _{node.pos}_GREATER\n\tMOV R0, #0\n_{node.pos}_GREATER:"
 
         new = "\n".join([lhs, push, rhs, pop, operation])
 

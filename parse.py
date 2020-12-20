@@ -74,7 +74,7 @@ def parse_instructions(tokens: List[Token]) -> Tuple[List[Type[ActionNode]], Lis
         node = AssignNode(name, value)
 
     elif is_front(tokens, [TokenSpecies.PRINT]):
-        tokens0 = tokens[1:]
+        _, *tokens0 = tokens
         opened, tokens1 = get_or_riot(tokens0, TokenSpecies.OPENBR)
         elements, tokens2 = parse_params(tokens1)
         node = PrintNode(elements, opened.pos)
@@ -102,7 +102,7 @@ def parse_params(tokens: List[Token]) -> Tuple[List[Type[ValueNode]], List[Token
     """ Parse values until an ending token is encountered. """
     val, tokens0 = parse_value(tokens)
     if is_front(tokens0, [TokenSpecies.SEP]):
-        _, *tokens1 = tokens
+        _, *tokens1 = tokens0
         other_val, tokens2 = parse_params(tokens1)
         return [val] + other_val, tokens2
 

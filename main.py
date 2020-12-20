@@ -1,16 +1,17 @@
-from lexer import lexer, morse_converter, LexerError
+from lexer import lexer, morse_to_string, LexerError
 from parse import parser, ParserError
 from runner import runner, RunnerError
 from compiler import compiler, CompilerError
 from classes import *
-
+import sys
+import os
 
 # worse :: str -> bool -> bool -> Optional[str]
 @deepcopy_decorator
 def worse(text: str, is_morse: bool, to_compile: bool) -> Optional[str]:
     """ Interprets text as Worse code. """
     try:
-        normal_text = morse_converter(text) if is_morse else text
+        normal_text = morse_to_string(text) if is_morse else text
         tokens = lexer(normal_text)
         ast = parser(tokens)
 
@@ -30,8 +31,14 @@ def worse(text: str, is_morse: bool, to_compile: bool) -> Optional[str]:
 
 
 if __name__ == "__main__":
-    file = open("Worse.txt")
+    _, filename, do_morse = sys.argv
+
+    file = open(filename)
     file_content = file.read()
     file.close()
 
-    print(worse(file_content, False, False))
+    asm_code = worse(file_content, True if do_morse == "y" else False, True)
+    f = open("worse.asm", "w")
+    f.write(asm_code)
+    f.close()
+    os.system("make run")

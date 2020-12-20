@@ -120,7 +120,8 @@ if __name__ == "__main__":
     file.close()
 
     tokenized_code = lexer(file_content)
-    runner(parser(tokenized_code))
+    ast = parser(tokenized_code)
+    runner(ast)
 
 
 

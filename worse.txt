@@ -1,4 +1,4 @@
- ?odd(n)
+?odd(n)
     sos = 0;
     if(n)
         sos = even(n-1);
@@ -10,9 +10,16 @@
     if(n)
         sos = odd(n-1);
     ;
+;
 
+?fib(n)
+    sos = n;
+    if(n=:0)
+        sos = fib(n-1) + fib(n-2);
+    ;
 ;
 
 ?main()
     sos = even(100);
+    sos = fib(100);
 ;

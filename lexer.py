@@ -1,6 +1,5 @@
 import re
 from classes import *
-from functools import reduce
 
 
 class LexerError(Exception):
@@ -30,7 +29,7 @@ def lexer(code: str, rules: Type[Enum] = TokenSpecies, unknowns: str = r"[^\:\=\
 
 # morse_converter :: str -> bool -> str
 @deepcopy_decorator
-def morse_converter(text: str, is_morse: bool = True) -> str:
+def morse_to_string(text: str) -> str:
     """ Converts text to morse when is_morse is False and converts morse text to text if is_morse is True. """
     morse = {
         ".-":   "a",
@@ -93,19 +92,15 @@ def morse_converter(text: str, is_morse: bool = True) -> str:
         "\t":     "\t"
 
     }
-    text = text.lower()
-    if is_morse:
-        # Convert morse to text
-        if unknown := list(re.compile(r"[^-\./\s]").finditer(text)):
-            raise LexerError(unknown[0][0], "position", unknown[0].start())
-        morse_items = re.compile(r"(?<![.\-/])[\.\t\n\-/]+").findall(text)
-        result = "".join(map(lambda x: morse[x], morse_items))
+    new_text = text.lower()
 
-    else:
-        # Convert text to morse
-        rv_morse = dict(map(lambda kv: (kv[1], (kv[0])), morse.items()))
-        # result = " ".join(map(lambda ch: rv_morse[ch] if ch in rv_morse.keys() else ch, text))
-        result = reduce(lambda total, ch: " ".join((total, rv_morse[ch] if ch in rv_morse.keys() else ch)), text, "")
+    # Check for unknowns
+    if unknown := list(re.compile(r"[^-\./\s]").finditer(new_text)):
+        raise LexerError(unknown[0][0], "position", unknown[0].start())
+
+    # Convert to string
+    morse_items = re.compile(r"[.\-\/]+").findall(new_text)
+    result = "".join(map(lambda x: morse[x], morse_items))
 
     return result
 
@@ -117,4 +112,4 @@ if __name__ == "__main__":
     print(lexer(file_content))
 
     morse_text = "-.. .. - / .. ... / -- --- .-. ... . -.-. --- -.. . .-.-.- / ... --- ..."
-    print(morse_converter(morse_text, True))
+    print(morse_to_string(morse_text))
