@@ -12,6 +12,11 @@
     ;
 ;
 
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
 ?main()
     sos = even(100);
 ;
