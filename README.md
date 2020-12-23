@@ -22,27 +22,38 @@ Het voorbeeld hieronder print '$' 10 keer door middel van een while loop.
 
 ## Bevat
 - **Classes met inheritance:**
-    De base class is [Node](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L20) en de volgende erven allemaal over van Node.
-    - [ValueNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L33)
+    De base class is [Node](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L51) en hieruit erven 3 andere nodes.  
+    [ValueNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L65) <-- hieruit erven alle dingen die een waarde kunnen geven.
+    - [IntNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L91)
     - [VariableNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L46)
-    - [FuncExeNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L59)
-    - [OperationNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L73)
-    - [AssignNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L89)
-    - [PrintNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L103)
-    - [IfWhileNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L116)
-    - [FuncDefNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L133)
+    - [FuncExeNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L104)
+    - [OperationNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L118)
+    
+    [ActionNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L134) <-- hieruit erven alle acties.
+    - [AssignNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L147)
+    - [PrintNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L161)
+    - [IfWhileNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L174)
+    
+    [FuncDefNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L190)
 
 - **Object-printing voor elke class:**
     Ja
    
 - **Decorator:**
-    - [Definitie](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L19)
-    - [Toepassing_1](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L28)
-    - [Toepassing_2](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L40)
-    - [Toepassing_3](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L72)
-    - [Toepassing_4](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L83)
-    - [Toepassing_5](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L99)
-    - [Toepassing_6](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L112)
+    De decorator zorgt er voor dat elk meegegeven parameter door de deepcopy functie gaat en 
+    wordt gebruikt voor alle functies die ik geschreven heb voor deze opdracht 
+    (de lijst hieronder laat niet alle toepassingen zien van de decorator).
+    ```python
+    def deepcopy_decorator(func):
+        def inner(*args):
+            return func(*list(map(lambda element: deepcopy(element), args)))
+        return inner
+    ```
+    - [Definitie](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L6)
+    - [Toepassing_1](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/lexer.py#L15)
+    - [Toepassing_2](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/parse.py#L21)
+    - [Toepassing_3](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/runner.py#L17)
+
     
 - **Type-annotatie:**
     - Haskell-stijl in comments: [ja]
