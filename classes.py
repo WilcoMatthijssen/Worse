@@ -4,9 +4,8 @@ from typing import Tuple, List, Type, Dict, Optional, Callable, Union
 
 
 def deepcopy_decorator(func):
-    def inner(*args, **kwargs):
-        return func(*list(map(lambda element: deepcopy(element), args)),
-                    **dict(map(lambda k, v: (k, deepcopy(v)), kwargs.items())))
+    def inner(*args):
+        return func(*list(map(lambda element: deepcopy(element), args)))
     return inner
 
 
@@ -22,8 +21,10 @@ class TokenSpecies(Enum):
     NOTEQUAL= "\!\="
     GREATER = "\:\="
     LESSER  = "\=\:"
-    ADD     = "\+"
-    SUB     = "\-"
+    ADD     = "(?<!\+)\+(?!\+)"
+    MUL     = "\+\+"
+    SUB     = "(?<!\-)\-(?!\-)"
+    DIV     = "\-\-"
     OPENBR  = "\("
     CLOSEBR = "\)"
     ID      = "[a-zA-Z]\w*"
@@ -200,18 +201,5 @@ class FuncDefNode(Node):
     def __repr__(self) -> str:
         return self.__str__()
 
-
-class ASM:
-    def __init__(self, curr: str, vars: List[str], defs: Dict[str, FuncDefNode], body: str):
-        self.curr = curr
-        self.vars = vars
-        self.defs = defs
-        self.body = body
-
-    def __str__(self) -> str:
-        return self.body
-
-    def __repr__(self) -> str:
-        return self.__str__()
 
 
