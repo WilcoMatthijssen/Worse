@@ -60,17 +60,15 @@ Het voorbeeld hieronder print '$' 10 keer door middel van een while loop.
     - Python-stijl in functiedefinities: [ja]
     
 - **Toepassing hogere-orde functies:**
-    - [map lexer.py#L60](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L60)
-    - [map lexer.py#L64](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L64)
-    - [map lexer.py#L137](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L137)
-    - [map lexer.py#L141](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L141)
-    - [reduce lexer.py#L143](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L143)
-    - [get_op_func runner.py#L29](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L29)
-    - [map runner.py#L61](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L61)
-    - [reduce runner.py#L76](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L76)
-    - [map runner.py#L90](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L90)
-    - [reduce runner.py#L91](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L91)
-    - [reduce runner.py#L105](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L105)
+    - [map lexer.py#L23](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/lexer.py#L23)
+    - [map lexer.py#L27](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/lexer.py#L27)
+    - [map lexer.py#L103](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/lexer.py#L103)
+    - [get_op_func runner.py#L18](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L18)
+    - [map runner.py#L52](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L52)
+    - [reduce runner.py#L67](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L67)
+    - [map runner.py#L82](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L82)
+    - [map runner.py#L111](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L111)
+    - [reduce runner.py#L98](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L98)
 
     
 
