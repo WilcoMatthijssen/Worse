@@ -22,44 +22,53 @@ Het voorbeeld hieronder print '$' 10 keer door middel van een while loop.
 
 ## Bevat
 - **Classes met inheritance:**
-    De base class is [Node](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L20) en de volgende erven allemaal over van Node.
-    - [ValueNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L33)
+    De base class is [Node](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L51) en hieruit erven 3 andere nodes.  
+    [ValueNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L65) <-- hieruit erven alle dingen die een waarde kunnen geven.
+    - [IntNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L91)
     - [VariableNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L46)
-    - [FuncExeNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L59)
-    - [OperationNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L73)
-    - [AssignNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L89)
-    - [PrintNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L103)
-    - [IfWhileNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L116)
-    - [FuncDefNode](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/parse.py#L133)
+    - [FuncExeNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L104)
+    - [OperationNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L118)
+    
+    [ActionNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L134) <-- hieruit erven alle acties.
+    - [AssignNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L147)
+    - [PrintNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L161)
+    - [IfWhileNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L174)
+    
+    [FuncDefNode](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L190)
 
 - **Object-printing voor elke class:**
     Ja
    
 - **Decorator:**
-    - [Definitie](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L19)
-    - [Toepassing_1](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L28)
-    - [Toepassing_2](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L40)
-    - [Toepassing_3](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L72)
-    - [Toepassing_4](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L83)
-    - [Toepassing_5](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L99)
-    - [Toepassing_6](https://github.com/WilcoMatthijssen/Worse/blob/ed61ed0e1f1c11b80373c7095be2ffff5b9bf5b9/runner.py#L112)
+    De decorator zorgt er voor dat elk meegegeven parameter door de deepcopy functie gaat en 
+    wordt gebruikt voor alle functies die ik geschreven heb voor deze opdracht 
+    (de lijst hieronder laat niet alle toepassingen zien van de decorator).
+    ```python
+    def deepcopy_decorator(func):
+        def inner(*args):
+            return func(*list(map(lambda element: deepcopy(element), args)))
+        return inner
+    ```
+    - [Definitie](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/classes.py#L6)
+    - [Toepassing_1](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/lexer.py#L15)
+    - [Toepassing_2](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/parse.py#L21)
+    - [Toepassing_3](https://github.com/WilcoMatthijssen/Worse/blob/8f14f09f352043cd21461fff1d3e2852ccde279f/runner.py#L17)
+
     
 - **Type-annotatie:**
     - Haskell-stijl in comments: [ja]
     - Python-stijl in functiedefinities: [ja]
     
 - **Toepassing hogere-orde functies:**
-    - [map lexer.py#L60](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L60)
-    - [map lexer.py#L64](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L64)
-    - [map lexer.py#L137](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L137)
-    - [map lexer.py#L141](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L141)
-    - [reduce lexer.py#L143](https://github.com/WilcoMatthijssen/Worse/blob/421dd189005befe794a1057b85a71c3605335830/lexer.py#L143)
-    - [get_op_func runner.py#L29](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L29)
-    - [map runner.py#L61](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L61)
-    - [reduce runner.py#L76](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L76)
-    - [map runner.py#L90](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L90)
-    - [reduce runner.py#L91](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L91)
-    - [reduce runner.py#L105](https://github.com/WilcoMatthijssen/Worse/blob/8216fbb60fdd6e5e581a3dbcbf15f8c06fb77264/runner.py#L105)
+    - [map lexer.py#L23](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/lexer.py#L23)
+    - [map lexer.py#L27](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/lexer.py#L27)
+    - [map lexer.py#L103](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/lexer.py#L103)
+    - [get_op_func runner.py#L18](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L18)
+    - [map runner.py#L52](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L52)
+    - [reduce runner.py#L67](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L67)
+    - [map runner.py#L82](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L82)
+    - [map runner.py#L111](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L111)
+    - [reduce runner.py#L98](https://github.com/WilcoMatthijssen/Worse/blob/7ba2729327b06cd0b615de1b5bc7d29648a82325/runner.py#L98)
 
     
 

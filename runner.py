@@ -22,7 +22,9 @@ def get_op_func(species: Type[Enum]) -> Callable:
           TokenSpecies.GREATER: operator.gt,
           TokenSpecies.LESSER: operator.lt,
           TokenSpecies.EQUALS: operator.eq,
-          TokenSpecies.NOTEQUAL: operator.ne}
+          TokenSpecies.NOTEQUAL: operator.ne,
+          TokenSpecies.MUL: operator.mul,
+          TokenSpecies.DIV: operator.floordiv}
     return op[species]
 
 

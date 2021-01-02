@@ -132,13 +132,21 @@ def parse_value(tokens: List[Token], operation: Optional[Token] = None, lhs: Opt
     else:
         raise ParserError("value, variable or function", tokens[0] if len(tokens) != 0 else None)
 
-    val0 = OperationNode(lhs, operation, val) if lhs else val
-    if is_front(tokens0, [TokenSpecies.ADD, TokenSpecies.SUB, TokenSpecies.NOTEQUAL, TokenSpecies.GREATER,
-                          TokenSpecies.EQUALS, TokenSpecies.LESSER]):
-        val1, tokens1 = parse_value(tokens0[1:], tokens0[0], val0)
+    add_sub = [TokenSpecies.ADD, TokenSpecies.SUB]
+    div_mul = [TokenSpecies.DIV, TokenSpecies.MUL]
+    ne_ge_eq_le = [TokenSpecies.NOTEQUAL, TokenSpecies.GREATER, TokenSpecies.EQUALS, TokenSpecies.LESSER]
+
+    if (is_front(tokens0, div_mul) and operation is not None and operation.species in add_sub) \
+            or (is_front(tokens0, ne_ge_eq_le) and operation is not None and operation.species in add_sub + div_mul):
+        rhs, tokens1 = parse_value(tokens0[1:], tokens0[0], val)
+        val1 = OperationNode(lhs, operation, rhs)
     else:
-        tokens1 = tokens0
-        val1 = val0
+        val01 = OperationNode(lhs, operation, val) if lhs else val
+        if is_front(tokens0, add_sub + div_mul + ne_ge_eq_le):
+            val1, tokens1 = parse_value(tokens0[1:], tokens0[0], val01)
+        else:
+            val1 = val01
+            tokens1 = tokens0
 
     if is_front(tokens1, [TokenSpecies.SEP, TokenSpecies.CLOSEBR, TokenSpecies.END]):
         return val1, tokens1

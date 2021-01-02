@@ -58,7 +58,11 @@ def asm_value(asm: ASM, node: Type[ValueNode]) -> str:
 
         values = map(lambda p: asm_value(asm, p), node.params)
         assign = map(lambda par_name: f"\tLDR R2, ={node.name}_{par_name}\n\tSTR R0, [R2]", asm.defs[node.name].params)
-        new = "\n".join(map(lambda tup: "\n".join(tup), zip(values, assign))) + f"\n\tBL {node.name}"
+
+        var_backup = "\n\t".join(map(lambda var_name: f"LDR R2 ={var_name}\n\tLDR R1 {{R2}}\n\tPUSH {{R1}}", asm.vars))
+        var_restore = "\n\t".join(map(lambda var_name: f"POP {{R1}}\n\tLDR R2 ={var_name}\n\tSTR R1 {{R2}}", asm.vars[:: -1]))
+        func_call = f"\n\tPUSH {{R1, R2, R3}}\n\tBL {node.name}\n\tPOP {{R1, R2, R3}} "
+        new = "\n".join(map(lambda tup: "\n".join(tup), zip(values, assign))) + var_backup +  func_call + var_restore
 
     return new
 
@@ -93,7 +97,8 @@ def asm_action(asm: ASM, node: Type[ActionNode]) -> ASM:
 
     else:  # isinstance(node, PrintNode):
         # Get assembly for each value and add assembly to print them.
-        print_calls = "\n".join(map(lambda val_node: f"{asm_value(asm, val_node)}\n\tBL uart_put_char", node.value))
+        print_call = "\n\tPUSH {R1, R2, R3}\n\tBL uart_put_char\n\tPOP {R1, R2, R3}"
+        print_calls = "\n".join(map(lambda val_node: f"{asm_value(asm, val_node)}{print_call}", node.value))
 
         new = ASM(asm.curr, asm.vars, asm.defs, "\n".join([asm.body, print_calls]))
 
@@ -106,7 +111,7 @@ def asm_function(node: FuncDefNode, functions: Dict[str, FuncDefNode]) -> Tuple[
     """ Creates a function in Cortex M0 assembly from a FuncDefNode. """
     # Create initial function ASM object
     variables = list(map(lambda param: f"{node.name}_{param}", node.params.keys()))
-    start = f"{node.name}:\n\tPUSH {{R1, LR}}"
+    start = f"{node.name}:\n\tPUSH {{R1, R2, R3, LR }}"
 
     # Get assembly for actions of function.
     asm = reduce(asm_action, node.actions, ASM(node.name, variables, functions, start))
@@ -116,7 +121,7 @@ def asm_function(node: FuncDefNode, functions: Dict[str, FuncDefNode]) -> Tuple[
         raise CompilerError(f"{node.name} at {node.pos} does not return a value.")
 
     # Create assembly to return value from function
-    ending = f"\n\tLDR R2, ={node.name}_sos\n\tLDR R0, [R2]\n\tPOP {{ R1, PC }}\n"
+    ending = f"\n\tLDR R2, ={node.name}_sos\n\tLDR R0, [R2]\n\tPOP {{R1, R2, R3, PC}}\n"
 
     return asm.body + ending, asm.vars
 
@@ -141,7 +146,7 @@ def compiler(ast: List[FuncDefNode], start_func: str = "main") -> str:
     init = "\n".join([".cpu cortex-m0", ".align 4", ".global __main"])
     data = "\n.data\n" + "\n".join(map(lambda v: f"{v}: .word 0", flattened_variables))
     text = "\n.text\n" + "\n".join(instructions)
-    base = "\n\t".join(["__main:", "PUSH { LR }", f"BL {start_func}", "POP { PC }"])
+    base = "\n\t".join(["__main:", "PUSH { R1, R2, R3, LR }", f"BL {start_func}", "POP { R1, R2, R3, PC }"])
     return "\n".join([init, data, text, base])
 
 

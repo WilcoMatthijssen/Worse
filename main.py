@@ -6,6 +6,7 @@ from classes import *
 import sys
 import os
 
+
 # worse :: str -> bool -> bool -> Optional[str]
 @deepcopy_decorator
 def worse(text: str, is_morse: bool, to_compile: bool) -> Optional[str]:
@@ -14,7 +15,6 @@ def worse(text: str, is_morse: bool, to_compile: bool) -> Optional[str]:
         normal_text = morse_to_string(text) if is_morse else text
         tokens = lexer(normal_text)
         ast = parser(tokens)
-
         return compiler(ast) if to_compile else runner(ast)
 
     except LexerError as e:
@@ -31,14 +31,13 @@ def worse(text: str, is_morse: bool, to_compile: bool) -> Optional[str]:
 
 
 if __name__ == "__main__":
-    _, filename, do_morse = sys.argv
-
-    file = open(filename)
+    # _, filename, do_morse = sys.argv
+    #
+    file = open("worse.txt")
     file_content = file.read()
     file.close()
+    #do_morse in ["y", "Y", "Yes", "yes"]
+    asm_code = worse(file_content, False, True)
+    print(asm_code)
 
-    asm_code = worse(file_content, True if do_morse == "y" else False, True)
-    f = open("worse.asm", "w")
-    f.write(asm_code)
-    f.close()
-    os.system("make run")
+
