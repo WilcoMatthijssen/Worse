@@ -37,9 +37,9 @@ def asm_value(asm: ASM, node: Type[ValueNode]) -> str:
         elif node.operator == TokenSpecies.SUB:
             operation = "\tSUB R0, R1, R0"
         elif node.operator == TokenSpecies.EQUALS:
-            operation = f"\tCMP R0, R1\n\tMOV R0, #1\n\tBEQ _{node.pos}_EQUALS\n\tMOV R0, #0\n_{node.pos}_EQUALS:"
+            operation = f"\tCMP R0, R1\n\tMOV R0, #1\n\tBNE _{node.pos}_EQUALS\n\tMOV R0, #0\n_{node.pos}_EQUALS:"
         elif node.operator == TokenSpecies.NOTEQUAL:
-            operation = f"\tCMP R0, R1\n\tMOV R0, #1\n\tBNE _{node.pos}_NOTEQUAL\n\tMOV R0, #0\n_{node.pos}_NOTEQUAL:"
+            operation = f"\tCMP R0, R1\n\tMOV R0, #1\n\tBEQ _{node.pos}_NOTEQUAL\n\tMOV R0, #0\n_{node.pos}_NOTEQUAL:"
         elif node.operator == TokenSpecies.LESSER:
             operation = f"\tCMP R0, R1\n\tMOV R0, #1\n\tBLT _{node.pos}_LESSER\n\tMOV R0, #0\n_{node.pos}_LESSER:"
         else:  # node.operator == TokenSpecies.GREATER:
@@ -58,11 +58,17 @@ def asm_value(asm: ASM, node: Type[ValueNode]) -> str:
 
         values = map(lambda p: asm_value(asm, p), node.params)
         assign = map(lambda par_name: f"\tLDR R2, ={node.name}_{par_name}\n\tSTR R0, [R2]", asm.defs[node.name].params)
+     
+        
+        assign_values = "\n".join(map(lambda va: "\n".join(va), zip(values, assign)))
 
-        var_backup = "\n\t".join(map(lambda var_name: f"LDR R2 ={var_name}\n\tLDR R1 {{R2}}\n\tPUSH {{R1}}", asm.vars))
-        var_restore = "\n\t".join(map(lambda var_name: f"POP {{R1}}\n\tLDR R2 ={var_name}\n\tSTR R1 {{R2}}", asm.vars[:: -1]))
-        func_call = f"\n\tPUSH {{R1, R2, R3}}\n\tBL {node.name}\n\tPOP {{R1, R2, R3}} "
-        new = "\n".join(map(lambda tup: "\n".join(tup), zip(values, assign))) + var_backup +  func_call + var_restore
+        load_var = map(lambda var_name: f"\tLDR R2, ={var_name}", asm.vars)
+        var_backup = "\n".join(map(lambda ldr: f"{ldr}\n\tLDR R1, [R2]\n\tPUSH {{R1}}", load_var))
+        var_restore = "\n".join(map(lambda ldr: f"{ldr}\n\tPOP {{R1}}\n\tSTR R1, [R2]", reversed(list(load_var))))
+
+        func_call = f"\tBL {node.name}"
+
+        new = "\n".join([var_backup, assign_values, func_call, var_restore])
 
     return new
 
@@ -97,7 +103,7 @@ def asm_action(asm: ASM, node: Type[ActionNode]) -> ASM:
 
     else:  # isinstance(node, PrintNode):
         # Get assembly for each value and add assembly to print them.
-        print_call = "\n\tPUSH {R1, R2, R3}\n\tBL uart_put_char\n\tPOP {R1, R2, R3}"
+        print_call = "\n\tPUSH {R0, R1, R2}\n\tBL uart_put_char\n\tPOP {R0, R1, R2}"
         print_calls = "\n".join(map(lambda val_node: f"{asm_value(asm, val_node)}{print_call}", node.value))
 
         new = ASM(asm.curr, asm.vars, asm.defs, "\n".join([asm.body, print_calls]))
@@ -111,7 +117,7 @@ def asm_function(node: FuncDefNode, functions: Dict[str, FuncDefNode]) -> Tuple[
     """ Creates a function in Cortex M0 assembly from a FuncDefNode. """
     # Create initial function ASM object
     variables = list(map(lambda param: f"{node.name}_{param}", node.params.keys()))
-    start = f"{node.name}:\n\tPUSH {{R1, R2, R3, LR }}"
+    start = f"{node.name}:\n\tPUSH {{LR }}"
 
     # Get assembly for actions of function.
     asm = reduce(asm_action, node.actions, ASM(node.name, variables, functions, start))
@@ -121,7 +127,7 @@ def asm_function(node: FuncDefNode, functions: Dict[str, FuncDefNode]) -> Tuple[
         raise CompilerError(f"{node.name} at {node.pos} does not return a value.")
 
     # Create assembly to return value from function
-    ending = f"\n\tLDR R2, ={node.name}_sos\n\tLDR R0, [R2]\n\tPOP {{R1, R2, R3, PC}}\n"
+    ending = f"\n\tLDR R2, ={node.name}_sos\n\tLDR R0, [R2]\n\tPOP {{PC}}\n"
 
     return asm.body + ending, asm.vars
 
