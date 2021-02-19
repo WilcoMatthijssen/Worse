@@ -10,8 +10,15 @@ class RunnerError(Exception):
         super().__init__(msg)
 
 
-def execute_function_by_name(function_name, parameter_values, functions):
-    assert function_name in functions, f"Function \"{function_name}\" does not exist."
+# -------------------------------------------------------------------------------------------------------------------- #
+#                                            Action interpreting                                                       #
+# -------------------------------------------------------------------------------------------------------------------- #
+
+
+# execute_function_by_name :: str -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def execute_function_by_name(function_name: str, parameter_values: List[int], functions: Dict[str, FuncDefNode]):
+    if function_name not in functions:
+        raise RunnerError(f"Function \"{function_name}\" does not exist.")
 
     function = functions.get(function_name)
     variables = dict(zip(function.params, parameter_values))
@@ -23,7 +30,8 @@ def execute_function_by_name(function_name, parameter_values, functions):
     return variables.get("sos")
 
 
-def execute_action(action, variables, functions):
+# execute_action :: Type[ActionNode] -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def execute_action(action: Type[ActionNode], variables: Dict[str, int], functions: Dict[str, FuncDefNode]):
     if isinstance(action, AssignNode):
         return execute_assign(action, variables, functions)
 
@@ -37,20 +45,23 @@ def execute_action(action, variables, functions):
         raise RunnerError(f"Action at {action.pos} of type {type(action)} isn't supported")
 
 
-def execute_assign(action, variables, functions):
+# execute_assign :: AssignNode -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def execute_assign(action: AssignNode, variables: Dict[str, int], functions: Dict[str, FuncDefNode]):
     value = retrieve_value(action.value, variables, functions)
     variables[action.name] = value
     return variables
 
 
-def execute_print(action, variables, functions):
+# execute_print :: PrintNode -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def execute_print(action: PrintNode, variables: Dict[str, int], functions: Dict[str, FuncDefNode]):
     values = [retrieve_value(value_node, variables, functions) for value_node in action.value]
     values_as_char = map(chr, values)
     print(*values_as_char)
     return variables
 
 
-def execute_if_or_while(action, variables, functions):
+# execute_if_or_while :: IfWhileNode -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def execute_if_or_while(action: IfWhileNode, variables: Dict[str, int], functions: Dict[str, FuncDefNode]):
     while True:
         # Prevent from running code when condition evaluates as 0.
         if retrieve_value(action.condition, variables, functions) == 0:
@@ -65,7 +76,13 @@ def execute_if_or_while(action, variables, functions):
     return variables
 
 
-def retrieve_value(action, variables, functions):
+# -------------------------------------------------------------------------------------------------------------------- #
+#                                            Value interpreting                                                        #
+# -------------------------------------------------------------------------------------------------------------------- #
+
+
+# retrieve_value :: Type[ValueNode] -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def retrieve_value(action: Type[ValueNode], variables: Dict[str, int], functions: Dict[str, FuncDefNode]):
     if isinstance(action, OperationNode):
         return execute_operation(action, variables, functions)
 
@@ -82,7 +99,8 @@ def retrieve_value(action, variables, functions):
         raise RunnerError(f"Action at {action.pos} of type {type(action)} isn't supported")
 
 
-def get_operator_by_name(operator_name):
+# get_operator_by_name :: TokenSpecies -> operator
+def get_operator_by_name(operator_name: TokenSpecies):
     operators = {
         TokenSpecies.ADD: operator.add,
         TokenSpecies.SUB: operator.sub,
@@ -94,11 +112,12 @@ def get_operator_by_name(operator_name):
         TokenSpecies.DIV: operator.floordiv
     }
     if operator_name not in operators:
-        RunnerError(f"Operator {operator_name} doesn't exist.")
+        raise RunnerError(f"Operator {operator_name} doesn't exist.")
     return operators[operator_name]
 
 
-def execute_operation(action, variables, functions):
+# execute_operation :: OperationNode -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def execute_operation(action: OperationNode, variables: Dict[str, int], functions: Dict[str, FuncDefNode]):
     lhs = retrieve_value(action.lhs, variables, functions)
     rhs = retrieve_value(action.rhs, variables, functions)
     operator_func = get_operator_by_name(action.operator)
@@ -106,27 +125,35 @@ def execute_operation(action, variables, functions):
     return int(operator_func(lhs, rhs))
 
 
-def retrieve_value_from_variable(action, variables, functions):
+# retrieve_value_from_variable :: VariableNode -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def retrieve_value_from_variable(action: VariableNode, variables: Dict[str, int], functions: Dict[str, FuncDefNode]):
     if action.name not in variables:
         raise RunnerError(f"Variable {action} at {action.pos} doesn't exist.")
     return variables.get(action.name)
 
 
-def retrieve_value_from_int(action, variables, functions):
+# retrieve_value_from_int :: IntNode -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def retrieve_value_from_int(action: IntNode, variables: Dict[str, int], functions: Dict[str, FuncDefNode]):
     try:
         return int(action.value)
     except ValueError:
-        print("Can't convert value to int.")
+        raise RunnerError(f"Can't interpret {action} at {action.pos} to int.")
 
 
-def execute_function(action, variables, functions):
+# execute_function :: FuncExeNode -> Dict[str, int] -> Dict[str, FuncDefNode] -> int
+def execute_function(action: FuncExeNode, variables: Dict[str, int], functions: Dict[str, FuncDefNode]):
     parameters = [retrieve_value(value, variables, functions) for value in action.params]
     return execute_function_by_name(action.name, parameters, functions)
 
 
-def runner(function_list, begin_func_name="main"):
+# -------------------------------------------------------------------------------------------------------------------- #
+#                                            Main functions                                                            #
+# -------------------------------------------------------------------------------------------------------------------- #
+
+# runner :: List[FuncDefNode] -> str -> None
+def runner(function_list: List[FuncDefNode], begin_func_name: str = "main"):
     functions = {func.name: func for func in function_list}
-    print(execute_function_by_name(begin_func_name, (), functions))
+    print(execute_function_by_name(begin_func_name, [], functions))
 
 
 if __name__ == "__main__":
@@ -136,7 +163,7 @@ if __name__ == "__main__":
 
     tokenized_code = lexer(file_content)
     ast = parser(tokenized_code)
-    runner(ast, "main")
+    runner(ast)
 
 
 
