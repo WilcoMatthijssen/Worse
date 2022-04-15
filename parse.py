@@ -44,23 +44,23 @@ def get_or_riot(tokens: List[Token], species: TokenSpecies) -> Tuple[Token, List
     """ Returns a token if its the wanted species and otherwise it throws an error. """
     if is_front(tokens, [species]):
         return tokens[0], tokens[1:]
-    raise ParserError(species.name, tokens[0] if len(tokens) != 0 else None)
+    raise ParserError(species.name, tokens[0] if tokens else None)
 
 
 # parser :: List[Token] -> List[FuncDefNode]
 @deepcopy_decorator
 def parser(tokens: List[Token]) -> List[FuncDefNode]:
     """ Parse functions until no tokens are left. """
-    _, tokens0 = get_or_riot(tokens, TokenSpecies.DEF)
-    name, tokens1 = get_or_riot(tokens0, TokenSpecies.ID)
-    _, tokens2 = get_or_riot(tokens1, TokenSpecies.OPENBR)
-    param, tokens3 = parse_def_parameters(tokens2)
-    _, tokens4 = get_or_riot(tokens3, TokenSpecies.CLOSEBR)
-    instr, tokens5 = parse_instructions(tokens4)
-    _, tokens6 = get_or_riot(tokens5, TokenSpecies.END)
+    _, tokens = get_or_riot(tokens, TokenSpecies.DEF)
+    name, tokens = get_or_riot(tokens, TokenSpecies.ID)
+    _, tokens = get_or_riot(tokens, TokenSpecies.OPENBR)
+    param, tokens = parse_def_parameters(tokens)
+    _, tokens = get_or_riot(tokens, TokenSpecies.CLOSEBR)
+    instr, tokens = parse_instructions(tokens)
+    _, tokens = get_or_riot(tokens, TokenSpecies.END)
 
     function_define = [FuncDefNode(name, param, instr)]
-    return function_define + parser(tokens6) if len(tokens6) != 0 else function_define
+    return function_define + parser(tokens) if len(tokens) != 0 else function_define
 
 
 # parse_instructions :: List[Token] -> Tuple[List[Type[ActionNode]], List[Token]]
@@ -68,46 +68,46 @@ def parser(tokens: List[Token]) -> List[FuncDefNode]:
 def parse_instructions(tokens: List[Token]) -> Tuple[List[Type[ActionNode]], List[Token]]:
     """ Parse instructions until a final ending token is encountered. """
     if is_front(tokens, [TokenSpecies.ID]):
-        name, *tokens0 = tokens
-        _, tokens1 = get_or_riot(tokens0, TokenSpecies.ASSIGN)
-        value, tokens2 = parse_value(tokens1)
+        name, *tokens = tokens
+        _, tokens = get_or_riot(tokens, TokenSpecies.ASSIGN)
+        value, tokens = parse_value(tokens)
         node = AssignNode(name, value)
 
     elif is_front(tokens, [TokenSpecies.PRINT]):
-        _, *tokens0 = tokens
-        opened, tokens1 = get_or_riot(tokens0, TokenSpecies.OPENBR)
-        elements, tokens2 = parse_params(tokens1)
+        _, *tokens = tokens
+        opened, tokens = get_or_riot(tokens, TokenSpecies.OPENBR)
+        elements, tokens = parse_params(tokens)
         node = PrintNode(elements, opened.pos)
 
     elif is_front(tokens, [TokenSpecies.WHILE, TokenSpecies.IF]):
         is_while = TokenSpecies.WHILE == tokens[0].species
 
-        _, tokens0 = get_or_riot(tokens[1:], TokenSpecies.OPENBR)
-        parameters, tokens1 = parse_value(tokens0)
-        _, tokens1_0 = get_or_riot(tokens1, TokenSpecies.CLOSEBR)
+        _, tokens = get_or_riot(tokens[1:], TokenSpecies.OPENBR)
+        parameters, tokens = parse_value(tokens)
+        _, tokens = get_or_riot(tokens, TokenSpecies.CLOSEBR)
 
-        instructions, tokens2 = parse_instructions(tokens1_0)
+        instructions, tokens = parse_instructions(tokens)
         node = IfWhileNode(parameters, instructions, is_while)
     else:
         return [], tokens
 
-    _, tokens3 = get_or_riot(tokens2, TokenSpecies.END)
-    other_nodes, tokens4 = parse_instructions(tokens3)
-    return [node] + other_nodes, tokens4
+    _, tokens = get_or_riot(tokens, TokenSpecies.END)
+    other_nodes, tokens = parse_instructions(tokens)
+    return [node] + other_nodes, tokens
 
 
 # parse_params :: List[Token] -> Tuple[List[Type[ValueNode]], List[Token]]
 @deepcopy_decorator
 def parse_params(tokens: List[Token]) -> Tuple[List[Type[ValueNode]], List[Token]]:
     """ Parse values until an ending token is encountered. """
-    val, tokens0 = parse_value(tokens)
-    if is_front(tokens0, [TokenSpecies.SEP]):
-        _, *tokens1 = tokens0
-        other_val, tokens2 = parse_params(tokens1)
-        return [val] + other_val, tokens2
+    val, tokens = parse_value(tokens)
+    if is_front(tokens, [TokenSpecies.SEP]):
+        _, *tokens = tokens
+        other_val, tokens = parse_params(tokens)
+        return [val] + other_val, tokens
 
-    _, tokens3 = get_or_riot(tokens0, TokenSpecies.CLOSEBR)
-    return [val], tokens3
+    _, tokens = get_or_riot(tokens, TokenSpecies.CLOSEBR)
+    return [val], tokens
 
 
 # parse_value :: List[Token] -> Token -> Optional[Type[ValueNode]] -> Tuple[Type[Node], List[Token]]
@@ -115,50 +115,46 @@ def parse_params(tokens: List[Token]) -> Tuple[List[Type[ValueNode]], List[Token
 def parse_value(tokens: List[Token], operation: Optional[Token] = None, lhs: Optional[Type[ValueNode]] = None) -> Tuple[Type[ValueNode], List[Token]]:
     """ Parse value until an ending token is encountered. """
     if is_front(tokens, [TokenSpecies.DIGIT]):
-        value_token, *tokens0 = tokens
+        value_token, *tokens = tokens
         val = IntNode(value_token)
     elif is_front(tokens, [TokenSpecies.ID]) and is_front(tokens[1:], [TokenSpecies.OPENBR]):
         name = tokens[0]
         if is_front(tokens[2:], [TokenSpecies.CLOSEBR]):
-            tokens0 = tokens[3:]
+            tokens = tokens[3:]
             val = FuncExeNode(name, [])
         else:
-            pars, tokens0 = parse_params(tokens[2:])
+            pars, tokens = parse_params(tokens[2:])
             val = FuncExeNode(name, pars)
 
     elif is_front(tokens, [TokenSpecies.ID]):
-        name, *tokens0 = tokens
+        name, *tokens = tokens
         val = VariableNode(name)
     else:
-        raise ParserError("value, variable or function", tokens[0] if len(tokens) != 0 else None)
+        raise ParserError("value, variable or function", tokens[0] if tokens else None)
 
     add_sub = [TokenSpecies.ADD, TokenSpecies.SUB]
     div_mul = [TokenSpecies.DIV, TokenSpecies.MUL]
     ne_ge_eq_le = [TokenSpecies.NOTEQUAL, TokenSpecies.GREATER, TokenSpecies.EQUALS, TokenSpecies.LESSER]
 
-    if (is_front(tokens0, div_mul) and operation is not None and operation.species in add_sub) \
-            or (is_front(tokens0, ne_ge_eq_le) and operation is not None and operation.species in add_sub + div_mul):
-        rhs, tokens1 = parse_value(tokens0[1:], tokens0[0], val)
-        val1 = OperationNode(lhs, operation, rhs)
+    if (is_front(tokens, div_mul) and operation is not None and operation.species in add_sub) \
+            or (is_front(tokens, ne_ge_eq_le) and operation is not None and operation.species in add_sub + div_mul):
+        rhs, tokens = parse_value(tokens[1:], tokens[0], val)
+        val = OperationNode(lhs, operation, rhs)
     else:
-        val01 = OperationNode(lhs, operation, val) if lhs else val
-        if is_front(tokens0, add_sub + div_mul + ne_ge_eq_le):
-            val1, tokens1 = parse_value(tokens0[1:], tokens0[0], val01)
-        else:
-            val1 = val01
-            tokens1 = tokens0
-
-    if is_front(tokens1, [TokenSpecies.SEP, TokenSpecies.CLOSEBR, TokenSpecies.END]):
-        return val1, tokens1
-
-    raise ParserError(TokenSpecies.END.name, tokens1[0] if len(tokens1) != 0 else None)
+        val = OperationNode(lhs, operation, val) if lhs else val
+        if is_front(tokens, add_sub + div_mul + ne_ge_eq_le):
+            val, tokens = parse_value(tokens[1:], tokens[0], val)
 
 
+    if is_front(tokens, [TokenSpecies.SEP, TokenSpecies.CLOSEBR, TokenSpecies.END]):
+        return val, tokens
+
+    raise ParserError(TokenSpecies.END.name, tokens[0] if len(tokens) != 0 else None)
+
+
+import pathlib
 if __name__ == "__main__":
-    file = open("Worse.txt")
-    file_content = file.read()
-    file.close()
-
+    file_content = pathlib.Path("Worse.txt").read_text()
     tokenized_code = lexer(file_content)
     print(parser(tokenized_code))
 
