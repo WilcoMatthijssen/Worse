@@ -100,15 +100,12 @@ def morse_to_string(text: str) -> str:
 
     # Convert to string
     morse_items = re.compile(r"[.\-\/]+").findall(new_text)
-    result = "".join(map(lambda x: morse[x], morse_items))
-
-    return result
+    return "".join(map(lambda x: morse[x], morse_items))
 
 
+import pathlib
 if __name__ == "__main__":
-    file = open("Worse.txt")
-    file_content = file.read()
-    file.close()
+    file_content = pathlib.Path("Worse.txt").read_text()
     print(lexer(file_content))
 
     morse_text = "-.. .. - / .. ... / -- --- .-. ... . -.-. --- -.. . .-.-.- / ... --- ..."

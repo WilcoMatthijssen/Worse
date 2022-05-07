@@ -30,14 +30,11 @@ def worse(text: str, is_morse: bool, to_compile: bool) -> Optional[str]:
         print(f"Failed compiling because: {e}")
 
 
+import pathlib
 if __name__ == "__main__":
     _, filename, do_morse = sys.argv
-    file = open(filename)
-    file_content = file.read()
-    file.close()
-
+    file_content = pathlib.Path(filename).read_text()
     asm_code = worse(file_content, do_morse == "y", True)
-    f = open("source/worse.asm", "w")
-    f.write(asm_code)
-    f.close()
+    with open("source/worse.asm", "w") as f:
+        f.write(asm_code)
     os.system("make -C source run")
