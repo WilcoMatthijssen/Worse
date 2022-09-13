@@ -1,4 +1,5 @@
 from copy import deepcopy
+from dataclasses import dataclass
 from enum import Enum
 from typing import Tuple, List, Type, Dict, Optional, Callable, Union
 
@@ -30,13 +31,11 @@ class TokenSpecies(Enum):
     ID      = "[a-zA-Z]\w*"
     DIGIT   = "[0-9]+"
 
-
+@dataclass(frozen=True)
 class Token:
-    def __init__(self, species: Type[Enum], content: str, pos: int):
-        """ Creates a Token containing content, pos and kind. """
-        self.content = content
-        self.species = species
-        self.pos = pos
+    species: TokenSpecies
+    content: str
+    pos: int
 
     def __str__(self) -> str:
         """ returns content, pos and kind of Token. """
@@ -214,5 +213,3 @@ class ASM:
 
     def __repr__(self) -> str:
         return self.__str__()
-
-
