@@ -1,7 +1,6 @@
-from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
-from typing import Tuple, List, Type, Dict, Optional, Callable, Union
+from typing import List, Type, Dict
 
 
 class TokenSpecies(Enum):
@@ -64,9 +63,6 @@ class ValueNode(Node):
     def __str__(self) -> str:
         return f"Empty value Node at {self.pos}"
 
-    def __repr__(self) -> str:
-        return self.__str__()
-
 
 class IntNode(ValueNode):
     def __init__(self, value: Token):
@@ -77,9 +73,6 @@ class IntNode(ValueNode):
     def __str__(self) -> str:
         return f"{self.value}"
 
-    def __repr__(self) -> str:
-        return self.__str__()
-
 
 class VariableNode(ValueNode):
     def __init__(self, name: Token):
@@ -88,9 +81,6 @@ class VariableNode(ValueNode):
         self.name = name.content
 
     def __str__(self) -> str:
-        return self.__repr__()
-
-    def __repr__(self) -> str:
         return f"{self.name}"
 
 
@@ -102,9 +92,6 @@ class FuncExeNode(ValueNode):
         self.params = params
 
     def __str__(self) -> str:
-        return self.__repr__()
-
-    def __repr__(self) -> str:
         return f"{self.name} {self.params}"
 
 
@@ -120,9 +107,6 @@ class OperationNode(ValueNode):
     def __str__(self) -> str:
         return f"({self.lhs} {self.operator} {self.rhs})"
 
-    def __repr__(self) -> str:
-        return self.__str__()
-
 
 class ActionNode(Node):
     """ Nodes that do an action. """
@@ -132,9 +116,6 @@ class ActionNode(Node):
 
     def __str__(self) -> str:
         return f"Empty action Node at {self.pos}"
-
-    def __repr__(self) -> str:
-        return self.__str__()
 
 
 class AssignNode(ActionNode):
@@ -147,9 +128,6 @@ class AssignNode(ActionNode):
     def __str__(self) -> str:
         return f"{self.name} = {self.value}"
 
-    def __repr__(self) -> str:
-        return self.__str__()
-
 
 class PrintNode(ActionNode):
     def __init__(self, value: List[Type[ValueNode]], pos: int):
@@ -159,9 +137,6 @@ class PrintNode(ActionNode):
 
     def __str__(self) -> str:
         return f"print {self.value}"
-
-    def __repr__(self) -> str:
-        return self.__str__()
 
 
 class IfWhileNode(ActionNode):
@@ -176,9 +151,6 @@ class IfWhileNode(ActionNode):
         loop = "while" if self.is_while else "if"
         return f"({loop}({self.condition}) {self.actions})"
 
-    def __repr__(self) -> str:
-        return self.__str__()
-
 
 class FuncDefNode(Node):
     def __init__(self, name: Token, params: Dict[str, int], actions: List[Type[ActionNode]]):
@@ -191,6 +163,4 @@ class FuncDefNode(Node):
     def __str__(self) -> str:
         return f"Define {self.name}({self.params}){self.actions};"
 
-    def __repr__(self) -> str:
-        return self.__str__()
 
