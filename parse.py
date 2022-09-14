@@ -96,7 +96,7 @@ def _parse_initial_value(tokens) -> Tuple[Type[cl.ValueNode], List[cl.Token]]:
 
 
 def parse_params(tokens: List[cl.Token]) -> Tuple[List[Type[cl.ValueNode]], List[cl.Token]]:
-    """ parse_params :: List[Token] -> Tuple[List[Type[ValueNode]], List[Token]] 
+    """ parse_params :: List[Token] -> Tuple[List[Type[ValueNode]], List[Token]]
     Parse values until an ending token is encountered. """
     val, tokens = parse_value(tokens)
     if is_front(tokens, [TS.SEP]):
@@ -107,6 +107,7 @@ def parse_params(tokens: List[cl.Token]) -> Tuple[List[Type[cl.ValueNode]], List
 
 
 def parse_value(tokens: List[cl.Token], operation: Optional[cl.Token] = None, lhs: Optional[Type[cl.ValueNode]] = None, val = None):
+    """parse value"""
     val, tokens = _parse_initial_value(tokens)
     add_sub = TS.ADD, TS.SUB
     div_mul = TS.DIV, TS.MUL

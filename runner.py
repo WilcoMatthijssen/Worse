@@ -5,33 +5,29 @@ import sys
 from lexer import lexer
 from parse import parser
 import classes as cl
-from dataclasses import dataclass
 sys.setrecursionlimit(700)
-
-
 
 
 class RunnerError(Exception):
     """ Error for when something goes wrong running the Worse code """
 
 
-
-def execute_function_by_name(function_name: str, parameter_values: List[int], functions: Dict[str, cl.FuncDefNode]):
+def execute_function_by_name(name: str, parameters: List[int], functions: Dict[str, cl.FuncDefNode]):
     """execute_function_by_name :: str -> Dict[str, int] -> Dict[str, FuncDefNode] -> int"""
-    if function_name not in functions:
-        raise RunnerError(f"Function \"{function_name}\" does not exist.")
+    if name not in functions:
+        raise RunnerError(f"Function \"{name}\" does not exist.")
 
-    function = functions.get(function_name)
-    variables = dict(zip(function.params, parameter_values))
+    function = functions.get(name)
+    variables = dict(zip(function.params, parameters))
     for sub_action in function.actions:
         variables = execute_action(sub_action, variables, functions)
 
     if "sos" not in variables:
-        RunnerError(f"Function {function_name} doesn't return a value.")
+        RunnerError(f"Function {name} doesn't return a value.")
     return variables.get("sos")
 
 
-def execute_action(action: Type[cl.ActionNode], variables: Dict[str, int], functions: Dict[str, cl.FuncDefNode]):
+def execute_action(action: cl.ActionNode, variables: Dict[str, int], functions: Dict[str, cl.FuncDefNode]):
     """execute_action :: Type[ActionNode] -> Dict[str, int] -> Dict[str, FuncDefNode] -> int"""
     match action:
         case cl.AssignNode():
@@ -42,7 +38,7 @@ def execute_action(action: Type[cl.ActionNode], variables: Dict[str, int], funct
             return execute_if_or_while(action, variables, functions)
         case _:
             RunnerError(f"Action at {action.pos} of type {type(action)} isn't supported")
-    return None, None # Can't reach this but Pylint will go crazy without
+    return None # Can't reach this but Pylint will go crazy without
 
 
 def execute_assign(action: cl.AssignNode, variables: Dict[str, int], functions: Dict[str, cl.FuncDefNode]):
@@ -70,7 +66,7 @@ def execute_if_or_while(action: cl.IfWhileNode, variables: Dict[str, int], funct
     return variables
 
 
-def retrieve_value(action: Type[cl.ValueNode], variables: Dict[str, int], functions: Dict[str, cl.FuncDefNode]) -> int:
+def retrieve_value(action: cl.ValueNode, variables: Dict[str, int], functions: Dict[str, cl.FuncDefNode]) -> int:
     """retrieve_value :: Type[ValueNode] -> Dict[str, int] -> Dict[str, FuncDefNode] -> int"""
     match action:
         case cl.OperationNode():
@@ -86,7 +82,7 @@ def retrieve_value(action: Type[cl.ValueNode], variables: Dict[str, int], functi
             return execute_function_by_name(action.name, parameters, functions)
         case _:
             raise RunnerError(f"Action at {action.pos} of type {type(action)} isn't supported")
-
+    return None # Can't reach this but Pylint will go crazy without
 
 def execute_operation(action: cl.OperationNode, variables: Dict[str, int], functions: Dict[str, cl.FuncDefNode]):
     """execute_operation :: OperationNode -> Dict[str, int] -> Dict[str, FuncDefNode] -> int"""
@@ -111,7 +107,7 @@ def execute_operation(action: cl.OperationNode, variables: Dict[str, int], funct
             return operator.floordiv(lhs, rhs)
         case _:
             raise RunnerError(f"Operator {action.operator} doesn't exist.")
-
+    return None # Can't reach this but Pylint will go crazy without
 
 def runner(function_list: List[cl.FuncDefNode], begin_func_name: str = "main"):
     """runner :: List[FuncDefNode] -> str -> None"""

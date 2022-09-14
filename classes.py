@@ -4,12 +4,6 @@ from enum import Enum
 from typing import Tuple, List, Type, Dict, Optional, Callable, Union
 
 
-def deepcopy_decorator(func):
-    def inner(*args):
-        return func(*list(map(lambda element: deepcopy(element), args)))
-    return inner
-
-
 class TokenSpecies(Enum):
     WHILE   = "(?<!\w)while(?!\w)"
     IF      = "(?<!\w)if(?!\w)"
@@ -31,6 +25,7 @@ class TokenSpecies(Enum):
     ID      = "[a-zA-Z]\w*"
     DIGIT   = "[0-9]+"
 
+
 @dataclass(frozen=True)
 class Token:
     species: TokenSpecies
@@ -44,7 +39,6 @@ class Token:
     def __repr__(self) -> str:
         """ returns content, pos and kind of Token. """
         return f"(\"{self.content}\", {self.pos}, {self.species})"
-
 
 
 class Node:
@@ -200,16 +194,3 @@ class FuncDefNode(Node):
     def __repr__(self) -> str:
         return self.__str__()
 
-
-class ASM:
-    def __init__(self, curr: str, vars: List[str], defs: Dict[str, FuncDefNode], body: str):
-        self.curr = curr
-        self.vars = vars
-        self.defs = defs
-        self.body = body
-
-    def __str__(self) -> str:
-        return self.body
-
-    def __repr__(self) -> str:
-        return self.__str__()
