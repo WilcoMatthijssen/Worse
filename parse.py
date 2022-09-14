@@ -1,8 +1,6 @@
 """
 Parser for the Worse programming language
 """
-
-
 import pathlib
 from typing import Tuple, Dict, List, Optional, Type
 from lexer import lexer
@@ -12,36 +10,16 @@ from classes import TokenSpecies as TS
 
 class ParserError(Exception):
     """ Error for when something doesnt go as expected whilst parsing. """
-
     def __init__(self, wanted: str, gotten: Optional[cl.Token]):
-        self.wanted = wanted
-        if gotten:
-            self.gotten_content = gotten.content
-            self.gotten_type = gotten.species.name
-            self.position = gotten.pos
-            super().__init__(f"Expected {self.wanted}, but got {self.gotten_content}"
-                             f" which is a(n) {self.gotten_type}, at character position {self.position}.")
-        else:
-            super().__init__(
-                f"Expected {self.wanted}, but got nothing because its at the end of the file.")
+        recieved = f"{gotten.species.name} at {gotten.pos}" if gotten else "nothing"
+        super().__init__(f"Expected {wanted}, but recieved {recieved}.")
+
 
 
 def is_front(tokens: List[cl.Token], species: List[TS]) -> bool:
     """ is_front :: List[TS] -> boolr
     Returns True if first token in tokens is of the given species. """
-    return len(tokens) != 0 and tokens[0].species in species
-
-
-def parse_def_parameters(tokens: List[cl.Token]) -> Tuple[Dict[str, int], List[cl.Token]]:
-    """ Parse parameter names until an ending token is encountered. """
-    params = {tokens.pop(0).content: 0} if is_front(
-        tokens, [TS.ID]) else {}
-    if is_front(tokens, [TS.SEP]):
-        other_params, tokens = parse_def_parameters(tokens[1:])
-        return {**params, **other_params}, tokens
-    elif is_front(tokens, [TS.CLOSEBR]):
-        return params, tokens
-    raise ParserError("Parameters", tokens[0] if len(tokens) else None)
+    return tokens and tokens[0].species in species
 
 
 def get_or_riot(tokens: List[cl.Token], species: TS) -> Tuple[cl.Token, List[cl.Token]]:
@@ -52,22 +30,69 @@ def get_or_riot(tokens: List[cl.Token], species: TS) -> Tuple[cl.Token, List[cl.
     raise ParserError(species.name, tokens[0] if tokens else None)
 
 
+def parse_def_parameters(tokens: List[cl.Token]) -> Tuple[Dict[str, int], List[cl.Token]]:
+    """ Parse parameter names until an ending token is encountered. """
+    match tuple(tokens):
+        case cl.Token(TS.CLOSEBR), *remainder:
+            return {}, remainder
+        case cl.Token(TS.ID) as param, cl.Token(TS.CLOSEBR), *remainder:
+            return {param.content: 0}, remainder
+        case cl.Token(TS.ID) as param, cl.Token(TS.SEP), *remainder:
+            other_params, remainder = parse_def_parameters(remainder)
+            return {param.content: 0} | other_params, remainder
+        case _:
+            raise ParserError("Parameters", tokens[0] if tokens else None)
+    return None, None # Can't reach this but Pylint will go crazy without
+
 
 def parse_instructions(tokens: List[cl.Token]) -> Tuple[List[Type[cl.ActionNode]], List[cl.Token]]:
     """ parse_instructions :: List[Token] -> Tuple[List[Type[ActionNode]], List[Token]]
     Parse instructions until a final ending token is encountered. """
-    if is_front(tokens, [TS.ID]):
-        node, tokens = _parse_assign(tokens)
-    elif is_front(tokens, [TS.PRINT]):
-        node, tokens = _parse_print(tokens)
-    elif is_front(tokens, [TS.WHILE, TS.IF]):
-        node, tokens = _parse_loop(tokens)
-    else:
-        return [], tokens
+    match tuple(tokens):
+        case cl.Token(TS.ID) as name,cl.Token(TS.ASSIGN), *remainder:
+            value, tokens = parse_value(remainder)
+            node = cl.AssignNode(name, value)
+        case cl.Token(TS.PRINT) as name, cl.Token(TS.OPENBR), *remainder:
+            elements, tokens = parse_params(remainder)
+            node = cl.PrintNode(elements, name.pos)
+        case cl.Token(TS.WHILE | TS.IF) as keyword, cl.Token(TS.OPENBR), *remainder:
+            parameters,   tokens = parse_value(remainder)
+            _,            tokens = get_or_riot(tokens, TS.CLOSEBR)
+            instructions, tokens = parse_instructions(tokens)
+            is_while = TS.WHILE == keyword.species
+            node = cl.IfWhileNode(parameters, instructions, is_while)
+        case _:
+            return [], tokens
 
     _, tokens = get_or_riot(tokens, TS.END)
     other_nodes, tokens = parse_instructions(tokens)
     return [node] + other_nodes, tokens
+
+
+def _parse_func_exe(tokens):
+    match tuple(tokens):
+        case cl.Token(TS.ID) as name, cl.Token(TS.OPENBR), cl.Token(TS.CLOSEBR), *rest:
+            return cl.FuncExeNode(name, []), rest
+        case cl.Token(TS.ID) as name, cl.Token(TS.OPENBR), *rest:
+            parameters, rest = parse_params(rest)
+            return cl.FuncExeNode(name, parameters), rest
+
+
+def _parse_initial_value(tokens) -> Tuple[Type[cl.ValueNode], List[cl.Token]]:
+    match tuple(tokens):
+        case cl.Token(TS.DIGIT) as digit, *remainder:
+            return cl.IntNode(digit), remainder
+
+        case cl.Token(TS.ID), cl.Token(TS.OPENBR), *remainder:
+            return _parse_func_exe(tokens)
+
+        case cl.Token(TS.ID) as name, *remainder:
+            return cl.VariableNode(name), remainder
+
+        case _:
+            raise ParserError("value, variable or function",
+                                 tokens[0] if tokens else None)
+    return None, None # Can't reach this but Pylint will go crazy without
 
 
 def parse_params(tokens: List[cl.Token]) -> Tuple[List[Type[cl.ValueNode]], List[cl.Token]]:
@@ -81,67 +106,12 @@ def parse_params(tokens: List[cl.Token]) -> Tuple[List[Type[cl.ValueNode]], List
     return [val], tokens
 
 
-def _parse_assign(tokens):
-    name, *tokens = tokens
-    _,     tokens = get_or_riot(tokens, TS.ASSIGN)
-    value, tokens = parse_value(tokens)
-    node = cl.AssignNode(name, value)
-    return node, tokens
-
-
-def _parse_loop(tokens):
-    is_while = TS.WHILE == tokens[0].species
-    _,            tokens = get_or_riot(tokens[1:], TS.OPENBR)
-    parameters,   tokens = parse_value(tokens)
-    _,            tokens = get_or_riot(tokens, TS.CLOSEBR)
-    instructions, tokens = parse_instructions(tokens)
-    return cl.IfWhileNode(parameters, instructions, is_while), tokens
-
-
-def _parse_print(tokens):
-    _,       *tokens = tokens
-    opened,   tokens = get_or_riot(tokens, TS.OPENBR)
-    elements, tokens = parse_params(tokens)
-    return cl.PrintNode(elements, opened.pos), tokens
-
-
-# def parse_params(tokens: List[Token]):
-#     if is_front(tokens, TS.CLOSEBR):
-#         return [], tokens[1:]
-#     val, tokens = parse_value(tokens)
-#     if is_front(tokens, [TS.SEP]):
-#         other_val, tokens = parse_params(tokens[1:])
-#         return [val] + other_val, tokens
-# def _parse_func_exe(tokens):
-#     name,       tokens = get_or_riot(tokens, TS.ID)
-#     parameters, tokens = parse_params(tokens[1:])
-#     return FuncExeNode(name, parameters), tokens
-def _parse_func_exe(tokens):
-    name = tokens[0]
-    if is_front(tokens[2:], [TS.CLOSEBR]):
-        tokens = tokens[3:]
-        pars = []
-    else:
-        pars, tokens = parse_params(tokens[2:])
-    return cl.FuncExeNode(name, pars), tokens
-
-
-# parse_value :: List[Token] -> Token -> Optional[Type[ValueNode]] -> Tuple[Type[Node], List[Token]]
-def parse_value(tokens: List[cl.Token], operation: Optional[cl.Token] = None, lhs: Optional[Type[cl.ValueNode]] = None) -> Tuple[Type[cl.ValueNode], List[cl.Token]]:
-    """ Parse value until an ending token is encountered. """
+def parse_value(tokens: List[cl.Token], operation: Optional[cl.Token] = None, lhs: Optional[Type[cl.ValueNode]] = None, val = None):
     val, tokens = _parse_initial_value(tokens)
-    val, tokens = _parse_operation(tokens, operation, lhs, val)
-    if is_front(tokens, [TS.SEP, TS.CLOSEBR, TS.END]):
-        return val, tokens
-    raise ParserError(TS.END.name, tokens[0] if len(tokens) else None)
-
-
-def _parse_operation(tokens, operation, lhs, val):
-    add_sub = [TS.ADD,      TS.SUB]
-    div_mul = [TS.DIV,      TS.MUL]
-    ne_ge_eq_le = [TS.NOTEQUAL, TS.GREATER,
-                   TS.EQUALS, TS.LESSER]
-    if is_front(tokens, ne_ge_eq_le + div_mul) and operation is not None and operation.species in add_sub + div_mul:
+    add_sub = TS.ADD, TS.SUB
+    div_mul = TS.DIV, TS.MUL
+    ne_ge_eq_le = TS.NOTEQUAL, TS.GREATER, TS.EQUALS, TS.LESSER
+    if is_front(tokens, ne_ge_eq_le + div_mul) and operation and operation.species in add_sub + div_mul:
         rhs, tokens = parse_value(tokens[1:], tokens[0], val)
         val = cl.OperationNode(lhs, operation, rhs)
     else:
@@ -151,20 +121,6 @@ def _parse_operation(tokens, operation, lhs, val):
     return val, tokens
 
 
-def _parse_initial_value(tokens):
-    if is_front(tokens, [TS.DIGIT]):
-        return create_node_and_return_remainder(tokens, cl.IntNode)
-    elif is_front(tokens, [TS.ID]) and is_front(tokens[1:], [TS.OPENBR]):
-        return _parse_func_exe(tokens)
-    elif is_front(tokens, [TS.ID]):
-        return create_node_and_return_remainder(tokens, cl.VariableNode)
-    raise ParserError("value, variable or function", tokens[0] if tokens else None)
-
-
-def create_node_and_return_remainder(tokens, node):
-    return node(tokens[0]), tokens[1:]
-
-
 def parser(tokens: List[cl.Token]) -> List[cl.FuncDefNode]:
     """ parser :: List[Token] -> List[FuncDefNode]
     Parse functions until no tokens are left. """
@@ -172,10 +128,8 @@ def parser(tokens: List[cl.Token]) -> List[cl.FuncDefNode]:
     name,  tokens = get_or_riot(tokens, TS.ID)
     _,     tokens = get_or_riot(tokens, TS.OPENBR)
     param, tokens = parse_def_parameters(tokens)
-    _,     tokens = get_or_riot(tokens, TS.CLOSEBR)
     instr, tokens = parse_instructions(tokens)
     _,     tokens = get_or_riot(tokens, TS.END)
-
     function_define = [cl.FuncDefNode(name, param, instr)]
     return function_define + (parser(tokens) if len(tokens) else [])
 
